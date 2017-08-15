@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
 
 namespace EVE_All_API.StaticData
@@ -12,7 +10,7 @@ namespace EVE_All_API.StaticData
         private static Dictionary<int, SolarSystem> solarSystems = new Dictionary<int, SolarSystem>();
         public static SolarSystem getSystem(int _solarSystemID)
         {
-            lock(solarSystems)
+            lock (solarSystems)
             {
                 if (solarSystems.ContainsKey(_solarSystemID))
                 {
@@ -121,7 +119,7 @@ namespace EVE_All_API.StaticData
                     case "disallowedAnchorCategories":
                         disallowedAnchorCategories = new List<int>();
                         YamlSequenceNode seq = (YamlSequenceNode)entry.Value;
-                        foreach(YamlNode seqNode in seq.Children)
+                        foreach (YamlNode seqNode in seq.Children)
                         {
                             disallowedAnchorCategories.Add(Int32.Parse(seqNode.ToString()));
                         }
@@ -175,7 +173,7 @@ namespace EVE_All_API.StaticData
                 return false;
             }
             SolarSystem sys = new SolarSystem(yaml.Documents[0].RootNode);
-            lock(solarSystems)
+            lock (solarSystems)
             {
                 solarSystems[sys.solarSystemID] = sys;
             }
@@ -251,6 +249,43 @@ Lustravik
 30000142: Jita
 */
 
+        private Dictionary<int, List<int>> systemDestinations = null;
+        private bool generateDestinations()
+        {
+            systemDestinations = new Dictionary<int, List<int>>();
+            foreach (SolarSystem system in SolarSystem.solarSystems.Values)
+            {
+                // Are there any stargates?
+                if (system.stargates.Count > 0)
+                {
+                    // Create the destination list.
+                    systemDestinations[system.solarSystemID] = new List<int>();
+                    foreach (int gateID in system.stargates)
+                    {
+                        // Get the stargate.
+                        Stargate gate = Stargate.getStargate(gateID);
+                        if (gate != null)
+                        {
+                            // Get the destination gate.
+                            gate = Stargate.getStargate(gate.destination);
+                            if (gate != null)
+                            {
+                                int destinationSystemID = gate.solarSystemID;
+                                SolarSystem destinationSystem = getSystem(destinationSystemID);
+                                // If this is a high security system or we don't care.
+                                if (destinationSystem != null)
+                                {
+                                    // Add the system.
+                                    systemDestinations[system.solarSystemID].Add(destinationSystemID);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
         /// <summary>
         /// Find the path from this system to destination system.
         /// </summary>
@@ -261,7 +296,7 @@ Lustravik
         {
             List<int> path = new List<int>();
             Dictionary<int, int> distanceMap = getDistanceMap(highSec);
-            if(!distanceMap.ContainsKey(destinationID))
+            if (!distanceMap.ContainsKey(destinationID))
             {
                 return null;
             }
@@ -270,34 +305,24 @@ Lustravik
             path.Add(currentSystemID);
             int lowestSystemID = currentSystemID;
             int lowestDistance = distance;
-            while(distance > 0)
+            while (distance > 0)
             {
                 Dictionary<int, int> gateDistance = new Dictionary<int, int>();
                 // Get the solar system.
                 SolarSystem system = SolarSystem.getSystem(currentSystemID);
-                foreach(int gateID in system.stargates)
+                foreach (int destinationSystemID in systemDestinations[system.solarSystemID])
                 {
-                    // Get the stargate.
-                    Stargate gate = Stargate.getStargate(gateID);
-                    if (gate != null)
+                    // Does the system exist in the map?
+                    if (distanceMap.ContainsKey(destinationSystemID))
                     {
-                        // Get the destination gate.
-                        gate = Stargate.getStargate(gate.destination);
-                        if (gate != null)
-                        {
-                            // Does the system exist in the map?
-                            if (distanceMap.ContainsKey(gate.solarSystemID))
-                            {
-                                int dist = distanceMap[gate.solarSystemID];
-                                gateDistance[gate.solarSystemID] = dist;
-                                lowestDistance = Math.Min(lowestDistance, dist);
-                            }
-                        }
+                        int dist = distanceMap[destinationSystemID];
+                        gateDistance[destinationSystemID] = dist;
+                        lowestDistance = Math.Min(lowestDistance, dist);
                     }
                 }
                 // Remove longer jumps.
                 var longer = gateDistance.Where(g => g.Value > lowestDistance).ToArray();
-                foreach(var dest in longer)
+                foreach (var dest in longer)
                 {
                     gateDistance.Remove(dest.Key);
                 }
@@ -350,20 +375,24 @@ Lustravik
 
         public Dictionary<int, int> getDistanceMap(bool highSec = false)
         {
+            if (systemDestinations == null || systemDestinations.Count == 0)
+            {
+                generateDestinations();
+            }
             Dictionary<int, int> distanceMap = new Dictionary<int, int>();
             List<int> systems = new List<int>();
             // Add this system as the seed location.
             distanceMap[solarSystemID] = 0;
             systems.Add(solarSystemID);
             // Start interating the systems.
-            while(systems.Count > 0)
+            while (systems.Count > 0)
             {
                 // Get the first unproccessed system.
                 int _solarSystemID = systems[0];
                 systems.Remove(_solarSystemID);
                 // Get the solar system.
                 SolarSystem system = getSystem(_solarSystemID);
-                if(system == null)
+                if (system == null)
                 {
                     continue;
                 }
@@ -371,25 +400,19 @@ Lustravik
                 int distance = distanceMap[_solarSystemID] + 1;
                 // Iterate the gates in this system.
                 List<int> gateSystems = new List<int>();
-                foreach (int gateID in system.stargates)
+                if(!systemDestinations.ContainsKey(system.solarSystemID))
                 {
-                    // Get the stargate.
-                    Stargate gate = Stargate.getStargate(gateID);
-                    if (gate != null)
+                    // No jumps in this system.
+                    continue;
+                }
+                foreach (int destinationSystemID in systemDestinations[system.solarSystemID])
+                {
+                    SolarSystem destinationSystem = getSystem(destinationSystemID);
+                    // If this is a high security system or we don't care.
+                    if (destinationSystem != null && (destinationSystem.security >= 0.5 || !highSec))
                     {
-                        // Get the destination gate.
-                        gate = Stargate.getStargate(gate.destination);
-                        if (gate != null)
-                        {
-                            int destinationSystemID = gate.solarSystemID;
-                            SolarSystem destinationSystem = getSystem(destinationSystemID);
-                            // If this is a high security system or we don't care.
-                            if (destinationSystem != null && (destinationSystem.security >= 0.5 || !highSec))
-                            {
-                                // Add the system.
-                                gateSystems.Add(destinationSystemID);
-                            }
-                        }
+                        // Add the system.
+                        gateSystems.Add(destinationSystemID);
                     }
                 }
                 // Process the destination systems.

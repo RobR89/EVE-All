@@ -121,12 +121,13 @@ namespace EVE_All
             LoaderTab.LoaderArgs args = (LoaderTab.LoaderArgs)e;
             if (args?.loaderSuccess == true && args?.imageSuccess == true)
             {
+                PathTest();
                 // loading succeded.
-                //DateTime s = DateTime.Now;
-                //PathTest();
-                //DateTime f = DateTime.Now;
-                //TimeSpan ts = f - s;
-                //System.Diagnostics.Debug.WriteLine(ts.TotalMilliseconds);
+                DateTime s = DateTime.Now;
+                PathTest();
+                DateTime f = DateTime.Now;
+                TimeSpan ts = f - s;
+                System.Diagnostics.Debug.WriteLine(ts.TotalMilliseconds);
 
                 // Remove loader.
                 tabs.TabPages.Remove(loaderTab);
