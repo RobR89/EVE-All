@@ -180,103 +180,61 @@ namespace EVE_All_API.StaticData
             return true;
         }
 
-        /*
-        TO-DO: The path if high sec is selected is sometimes longer than necissary.
-        I.e. Rens to Jita is 2 jumps longer.
-        */
-        /*
-28 jumps.
-30002510: Rens
-30002526: Frarn
-30002529: Gyng
-30002568: Onga
-30002544: Pator
-30002543: Eystur
-30002053: Hek
-30002049: Uttindar
-30002048: Bei
-30002682: Colelie
-30002681: Deltole
-
-30002680: Augnais
-30002676: Parchanier
-30002706: Doussivitte
-30002711: Stetille
-30002710: Adiere
-30002709: Auberulle
-30002707: Unel
-30002763: Tennen
-30002766: Iivinen
-
-30002765: Sivala
-30002768: Uedama
-30002803: Juunigaishi
-30002805: Anttiri
-30002791: Sirppala
-30000139: Urlen
-30000144: Perimeter
-30000142: Jita
-*/
-        /*
-        In Game
-30002510: Rens
-30002526: Frarn
-30002529: Gyng
-30002568: Onga
-Lustravik
-30002543: Eystur
-30002053: Hek
-30002049: Uttindar
-30002048: Bei
-30002682: Colelie
-30002681: Deltole
-
-            Aufay
-            Balle
-            DuAnnes
-            Renyn
-            Algogille
-            Kassigainen
-30002764: Hatakani
-
-30002765: Sivala
-30002768: Uedama
-30002803: Juunigaishi
-30002805: Anttiri
-30002791: Sirppala
-30000139: Urlen
-30000144: Perimeter
-30000142: Jita
-*/
-
-        private Dictionary<int, List<int>> systemDestinations = null;
-        private bool generateDestinations()
+        public bool isHighSec()
         {
-            systemDestinations = new Dictionary<int, List<int>>();
-            foreach (SolarSystem system in SolarSystem.solarSystems.Values)
+            // Security is rounded up by the half.
+            return security >= 0.45;
+        }
+
+        public bool isLowSec()
+        {
+            // Security is rounded up by the half.
+            return security >= 0.05 && !isHighSec();
+        }
+
+        public bool isNULLSec()
+        {
+            return !isLowSec() && !isHighSec();
+        }
+
+        //----------------------------------------------------------------------
+        // Path finding
+        private static Dictionary<int, List<int>> systemDestinations = new Dictionary<int, List<int>>();
+        private static bool generateDestinations()
+        {
+            // Prevent multiple initializations.
+            lock (systemDestinations)
             {
-                // Are there any stargates?
-                if (system.stargates.Count > 0)
+                if (systemDestinations.Count > 0)
                 {
-                    // Create the destination list.
-                    systemDestinations[system.solarSystemID] = new List<int>();
-                    foreach (int gateID in system.stargates)
+                    // Already initialized.
+                    return true;
+                }
+                foreach (SolarSystem system in SolarSystem.solarSystems.Values)
+                {
+                    // Are there any stargates?
+                    if (system.stargates.Count > 0)
                     {
-                        // Get the stargate.
-                        Stargate gate = Stargate.getStargate(gateID);
-                        if (gate != null)
+                        // Create the destination list.
+                        systemDestinations[system.solarSystemID] = new List<int>();
+                        foreach (int gateID in system.stargates)
                         {
-                            // Get the destination gate.
-                            gate = Stargate.getStargate(gate.destination);
+                            // Get the stargate.
+                            Stargate gate = Stargate.getStargate(gateID);
                             if (gate != null)
                             {
-                                int destinationSystemID = gate.solarSystemID;
-                                SolarSystem destinationSystem = getSystem(destinationSystemID);
-                                // If this is a high security system or we don't care.
-                                if (destinationSystem != null)
+                                // Get the destination gate.
+                                gate = Stargate.getStargate(gate.destination);
+                                if (gate != null)
                                 {
-                                    // Add the system.
-                                    systemDestinations[system.solarSystemID].Add(destinationSystemID);
+                                    int destinationSystemID = gate.solarSystemID;
+                                    SolarSystem destinationSystem = getSystem(destinationSystemID);
+                                    // If this is a high security system or we don't care.
+                                    if (destinationSystem != null)
+                                    {
+                                        // Add the system.
+                                        systemDestinations[system.solarSystemID].Add(destinationSystemID);
+                                    }
                                 }
                             }
                         }
@@ -284,6 +242,31 @@ Lustravik
                 }
             }
             return true;
+        }
+
+        class PathParse
+        {
+            public PathParse()
+            {
+            }
+            public PathParse(PathParse pp)
+            {
+                distance = pp.distance;
+                currentSystemID = pp.currentSystemID;
+                // Save the distance reference.
+                distanceMap = pp.distanceMap;
+                // Copy the current path.
+                path = new List<int>(pp.path);
+            }
+            // Distance for current system.
+            public int distance;
+            // Current system.
+            public int currentSystemID;
+            // Found path.
+            public List<int> path;
+            public Dictionary<int, int> distanceMap;
+            // Split paths note.
+            public List<int> splitsUsed = new List<int>();
         }
 
         /// <summary>
@@ -294,83 +277,141 @@ Lustravik
         /// <returns>The path or null if not found.</returns>
         public List<int> findPath(int destinationID, bool highSec = false)
         {
-            List<int> path = new List<int>();
-            Dictionary<int, int> distanceMap = getDistanceMap(highSec);
-            if (!distanceMap.ContainsKey(destinationID))
+            // Initialize the found path.
+            PathParse pp = new PathParse();
+            // Get the distance map.
+            pp.distanceMap = getDistanceMap(highSec);
+            if (!pp.distanceMap.ContainsKey(destinationID))
             {
+                // Unreachable system!
                 return null;
             }
-            int distance = distanceMap[destinationID];
-            int currentSystemID = destinationID;
-            path.Add(currentSystemID);
-            int lowestSystemID = currentSystemID;
-            int lowestDistance = distance;
-            while (distance > 0)
+            pp.path = new List<int>();
+            if (destinationID == solarSystemID)
             {
-                Dictionary<int, int> gateDistance = new Dictionary<int, int>();
-                // Get the solar system.
-                SolarSystem system = SolarSystem.getSystem(currentSystemID);
-                foreach (int destinationSystemID in systemDestinations[system.solarSystemID])
+                // We are already there!
+                return pp.path;
+            }
+            // Init path finding.
+            pp.distance = pp.distanceMap[destinationID];
+            pp.currentSystemID = destinationID;
+            // Add destination system.
+            pp.path.Add(pp.currentSystemID);
+            // Find the shortest path.
+            pp = findShortest(pp, highSec);
+            // Check results.
+            if(pp == null)
+            {
+                // No path found.
+                if (highSec)
+                {
+                    // Cannot find path with current restrictions, try none.
+                    return findPath(destinationID);
+                }
+                return null;
+            }
+            // Reverse the list so the first system begins the list.
+            pp.path.Reverse();
+            return pp.path;
+        }
+
+        private PathParse findShortest(PathParse pp, bool highSec)
+        {
+            // Find starting system.
+            while (pp.distance > 0)
+            {
+                // Check that the system has jumps.
+                if(!systemDestinations.ContainsKey(pp.currentSystemID))
+                {
+                    // Error, system not found.
+                    return null;
+                }
+                // Get the distances for each jump.
+                Dictionary<int, int> jumpDistances = new Dictionary<int, int>();
+                int lowestDistance = pp.distance;
+                foreach (int destinationSystemID in systemDestinations[pp.currentSystemID])
                 {
                     // Does the system exist in the map?
-                    if (distanceMap.ContainsKey(destinationSystemID))
+                    if (pp.distanceMap.ContainsKey(destinationSystemID))
                     {
-                        int dist = distanceMap[destinationSystemID];
-                        gateDistance[destinationSystemID] = dist;
+                        int dist = pp.distanceMap[destinationSystemID];
+                        jumpDistances[destinationSystemID] = dist;
                         lowestDistance = Math.Min(lowestDistance, dist);
                     }
                 }
+                // Set distance to lowest.
+                pp.distance = lowestDistance;
                 // Remove longer jumps.
-                var longer = gateDistance.Where(g => g.Value > lowestDistance).ToArray();
+                var longer = jumpDistances.Where(g => g.Value > lowestDistance).ToArray();
                 foreach (var dest in longer)
                 {
-                    gateDistance.Remove(dest.Key);
+                    jumpDistances.Remove(dest.Key);
                 }
-                bool lowestCorridor = false;
-                foreach (var dest in gateDistance)
+                if (jumpDistances.Count == 0)
                 {
-                    SolarSystem destSystem = SolarSystem.getSystem(dest.Key);
-                    // If it's closer go there.
-                    if (lowestSystemID == currentSystemID)
+                    // Error, jumps not found.
+                    return null;
+                }
+                else if (jumpDistances.Count == 1)
+                {
+                    // Save this as currently shortest path.
+                    int dest = jumpDistances.ElementAt(0).Key;
+                    if (dest != pp.currentSystemID)
                     {
-                        // save this as currently shortest path.
-                        lowestDistance = dest.Value;
-                        lowestSystemID = dest.Key;
-                        if (destSystem?.corridor == true)
+                        // Add next point in path.
+                        pp.currentSystemID = dest;
+                        if(pp.path.Contains(pp.currentSystemID))
                         {
-                            lowestCorridor = true;
+                            // We have somehow looped back on ourself.
+                            return null;
                         }
-                        //break;
+                        pp.path.Add(pp.currentSystemID);
                     }
-                    // If it's same distance check for coridor.
-                    else if (destSystem?.corridor == true && !lowestCorridor)
+                    else
                     {
-                        // Save this as corridor prefered.
-                        lowestDistance = dest.Value;
-                        lowestSystemID = dest.Key;
-                        break;
+                        return null;
                     }
-                }
-                if (lowestSystemID != currentSystemID)
-                {
-                    // Add next point in path.
-                    distance = lowestDistance;
-                    currentSystemID = lowestSystemID;
-                    path.Add(lowestSystemID);
                 }
                 else
                 {
-                    if (highSec)
+                    PathParse spp = null;
+                    // 2 or more systems of same distance but not necessarily equal paths.
+                    foreach (int dest in jumpDistances.Keys)
                     {
-                        // Cannot find path with current restrictions, try none.
-                        return findPath(destinationID);
+                        // Create a copy of the path.
+                        PathParse npp = new PathParse(pp);
+                        // Add this point in path.
+                        npp.currentSystemID = dest;
+                        if (npp.path.Contains(npp.currentSystemID))
+                        {
+                            // We have somehow looped back on ourself.
+                            continue;
+                        }
+                        npp.path.Add(npp.currentSystemID);
+                        // Find the shortest distance if this option is taken.
+                        npp = findShortest(npp, highSec);
+                        if(spp == null)
+                        {
+                            // First successful path, keep it.
+                            spp = npp;
+                        }
+                        else
+                        {
+                            if(npp != null)
+                            {
+                                // Another successful path, is it shorter?
+                                if(npp.path.Count < spp.path.Count)
+                                {
+                                    // Yes!  Keep it.
+                                    spp = npp;
+                                }
+                            }
+                        }
                     }
-                    return null;
+                    return spp;
                 }
             }
-            // Reverse the list so the first system begins the list.
-            path.Reverse();
-            return path;
+            return pp;
         }
 
         public Dictionary<int, int> getDistanceMap(bool highSec = false)
@@ -407,12 +448,20 @@ Lustravik
                 }
                 foreach (int destinationSystemID in systemDestinations[system.solarSystemID])
                 {
-                    SolarSystem destinationSystem = getSystem(destinationSystemID);
-                    // If this is a high security system or we don't care.
-                    if (destinationSystem != null && (destinationSystem.security >= 0.5 || !highSec))
+                    if (!highSec)
                     {
-                        // Add the system.
+                        // We don't care about security.
                         gateSystems.Add(destinationSystemID);
+                    }
+                    else
+                    {
+                        // We want to stay safe!
+                        SolarSystem destinationSystem = getSystem(destinationSystemID);
+                        if (destinationSystem != null && destinationSystem.isHighSec())
+                        {
+                            // Add the system.
+                            gateSystems.Add(destinationSystemID);
+                        }
                     }
                 }
                 // Process the destination systems.

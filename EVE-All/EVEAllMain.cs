@@ -121,13 +121,9 @@ namespace EVE_All
             LoaderTab.LoaderArgs args = (LoaderTab.LoaderArgs)e;
             if (args?.loaderSuccess == true && args?.imageSuccess == true)
             {
-                PathTest();
                 // loading succeded.
-                DateTime s = DateTime.Now;
+                //PathTest();
                 PathTest();
-                DateTime f = DateTime.Now;
-                TimeSpan ts = f - s;
-                System.Diagnostics.Debug.WriteLine(ts.TotalMilliseconds);
 
                 // Remove loader.
                 tabs.TabPages.Remove(loaderTab);
@@ -163,6 +159,7 @@ namespace EVE_All
 
         private void PathTest()
         {
+            DateTime s = DateTime.Now;
             SolarSystem start = SolarSystem.getSystem(30002510);
             List<int> path = start.findPath(30000142, true);
             if (path == null)
@@ -174,10 +171,13 @@ namespace EVE_All
                 System.Diagnostics.Debug.WriteLine(path.Count + " jumps.");
                 foreach (int systemID in path)
                 {
-                    SolarSystem system = SolarSystem.getSystem(systemID);
+                    //SolarSystem system = SolarSystem.getSystem(systemID);
                     System.Diagnostics.Debug.WriteLine(systemID + ": " + InvNames.getName(systemID));
                 }
             }
+            DateTime f = DateTime.Now;
+            TimeSpan ts = f - s;
+            System.Diagnostics.Debug.WriteLine("Path test took: " + ts.TotalMilliseconds + " ms");
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
