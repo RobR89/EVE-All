@@ -14,16 +14,17 @@ namespace EVE_All_API
         private static Dictionary<long, Pilot> pilots = new Dictionary<long, Pilot>();
         public static Pilot getPilot(long _characterID)
         {
-            Pilot pilot = null;
-            if(pilots.ContainsKey(_characterID))
+            lock (pilots)
             {
-                pilot = pilots[_characterID];
+                if (pilots.ContainsKey(_characterID))
+                {
+                    return pilots[_characterID];
+                }
+                else
+                {
+                    return new Pilot(_characterID);
+                }
             }
-            else
-            {
-                pilot = new Pilot(_characterID);
-            }
-            return pilot;
         }
 
         public class JumpClone
@@ -93,7 +94,10 @@ namespace EVE_All_API
         private Pilot(long _characterID)
         {
             characterID = _characterID;
-            pilots[_characterID] = this;
+            lock (pilots)
+            {
+                pilots[_characterID] = this;
+            }
         }
 
         public Image getImage(int size)
