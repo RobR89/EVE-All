@@ -42,7 +42,7 @@ namespace EVE_All_API.ESI
             }
             string url = ESI.constructURL("sovereignty/structures/", "");
 
-            JSON.ESIList<Structure> sov = JSON.getESIlist<Structure>(url, false);
+            JSON.ESIList<Structure> sov = JSON.getESIlist<Structure>(url);
             lock (structureSov)
             {
                 structureSovExpire = sov.expires;
@@ -85,7 +85,7 @@ namespace EVE_All_API.ESI
             }
             string url = ESI.constructURL("sovereignty/map/", "");
 
-            JSON.ESIList<Map> sov = JSON.getESIlist<Map>(url, false);
+            JSON.ESIList<Map> sov = JSON.getESIlist<Map>(url);
             lock (mapSov)
             {
                 mapSovExpire = sov.expires;

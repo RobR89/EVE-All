@@ -214,7 +214,7 @@ namespace EVE_All_API.ESI
             }
             // Data expired, load new.
             string url = ESI.constructURL("markets/" + regionID + "/orders/", "&order_type=all");
-            JSON.ESIList<MarketOrder> market = JSON.getESIlist<MarketOrder>(url, true);
+            JSON.ESIList<MarketOrder> market = JSON.getESIlist<MarketOrder>(url);
             if (market.items.Count == 0)
             {
                 // No data returned.
@@ -316,7 +316,7 @@ namespace EVE_All_API.ESI
             }
             // Data expired, load new.
             string url = ESI.constructURL("markets/prices/", "");
-            JSON.ESIList<MarketValue> values = JSON.getESIlist<MarketValue>(url, false);
+            JSON.ESIList<MarketValue> values = JSON.getESIlist<MarketValue>(url);
             if(values.items.Count == 0)
             {
                 // No data returned.
@@ -362,7 +362,7 @@ namespace EVE_All_API.ESI
         public static void updateMarketGroups()
         {
             string url = ESI.constructURL("markets/groups/", "");
-            JSON.ESIList<int> groupIDs = JSON.getESIlist<int>(url, false);
+            JSON.ESIList<int> groupIDs = JSON.getESIlist<int>(url);
             if (groupIDs.items.Count > 0)
             {
                 List<MarketGroup> groups = new List<MarketGroup>();
