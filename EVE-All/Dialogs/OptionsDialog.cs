@@ -1,12 +1,6 @@
 ﻿using EVE_All_API;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace EVE_All
@@ -22,6 +16,10 @@ namespace EVE_All
             typeZip.Text = UserData.typeIconZip;
             renderZip.Text = UserData.renderZip;
             iconsZip.Text = UserData.iconsZip;
+            SSO_ClientID.Text = UserData.sso_ClientID;
+            SSO_ResponseURI.Text = UserData.sso_RedirectURI;
+            SSO_SecurityKey.Text = UserData.sso_SecurityKey;
+            SSO_Scopes.Text = UserData.sso_Scopes;
 
             List<TextBox> boxes = new List<TextBox>(){ sdeZip, typeZip, renderZip, iconsZip };
             foreach(TextBox textBox in boxes)
@@ -49,6 +47,10 @@ namespace EVE_All
             UserData.typeIconZip = typeZip.Text;
             UserData.renderZip = renderZip.Text;
             UserData.iconsZip = iconsZip.Text;
+            UserData.sso_ClientID = SSO_ClientID.Text;
+            UserData.sso_RedirectURI = SSO_ResponseURI.Text;
+            UserData.sso_SecurityKey = SSO_SecurityKey.Text;
+            UserData.sso_Scopes = SSO_Scopes.Text;
         }
 
         private void BrowseCachePath_Click(object sender, EventArgs e)

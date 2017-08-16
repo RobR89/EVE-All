@@ -52,12 +52,22 @@
             this.pathsTab = new System.Windows.Forms.TabPage();
             this.staticDataTab = new System.Windows.Forms.TabPage();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.ScopesLabel = new System.Windows.Forms.Label();
+            this.SSO_Scopes = new System.Windows.Forms.TextBox();
+            this.SecurityKeyLabel = new System.Windows.Forms.Label();
+            this.SSO_SecurityKey = new System.Windows.Forms.TextBox();
+            this.ResponseURILabel = new System.Windows.Forms.Label();
+            this.SSO_ResponseURI = new System.Windows.Forms.TextBox();
+            this.ClientIDLabel = new System.Windows.Forms.Label();
+            this.SSO_ClientID = new System.Windows.Forms.TextBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.mainLayout = new System.Windows.Forms.TableLayoutPanel();
             this.mainTab.SuspendLayout();
             this.pathsTab.SuspendLayout();
             this.staticDataTab.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
+            this.tabPage1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.mainLayout.SuspendLayout();
             this.SuspendLayout();
@@ -74,6 +84,8 @@
             // 
             // cachePath
             // 
+            this.cachePath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.cachePath.Location = new System.Drawing.Point(6, 19);
             this.cachePath.Name = "cachePath";
             this.cachePath.Size = new System.Drawing.Size(324, 20);
@@ -99,6 +111,8 @@
             // 
             // imagePath
             // 
+            this.imagePath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.imagePath.Location = new System.Drawing.Point(6, 58);
             this.imagePath.Name = "imagePath";
             this.imagePath.Size = new System.Drawing.Size(324, 20);
@@ -144,6 +158,7 @@
             // 
             // BrowseImagePath
             // 
+            this.BrowseImagePath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.BrowseImagePath.Location = new System.Drawing.Point(336, 55);
             this.BrowseImagePath.Name = "BrowseImagePath";
             this.BrowseImagePath.Size = new System.Drawing.Size(75, 23);
@@ -154,6 +169,7 @@
             // 
             // BrowseCachePath
             // 
+            this.BrowseCachePath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.BrowseCachePath.Location = new System.Drawing.Point(336, 16);
             this.BrowseCachePath.Name = "BrowseCachePath";
             this.BrowseCachePath.Size = new System.Drawing.Size(75, 23);
@@ -250,6 +266,7 @@
             // 
             this.mainTab.Controls.Add(this.pathsTab);
             this.mainTab.Controls.Add(this.staticDataTab);
+            this.mainTab.Controls.Add(this.tabPage1);
             this.mainTab.Dock = System.Windows.Forms.DockStyle.Fill;
             this.mainTab.Location = new System.Drawing.Point(3, 3);
             this.mainTab.Name = "mainTab";
@@ -320,6 +337,96 @@
             this.tableLayoutPanel2.Size = new System.Drawing.Size(418, 306);
             this.tableLayoutPanel2.TabIndex = 23;
             // 
+            // tabPage1
+            // 
+            this.tabPage1.Controls.Add(this.ScopesLabel);
+            this.tabPage1.Controls.Add(this.SSO_Scopes);
+            this.tabPage1.Controls.Add(this.SecurityKeyLabel);
+            this.tabPage1.Controls.Add(this.SSO_SecurityKey);
+            this.tabPage1.Controls.Add(this.ResponseURILabel);
+            this.tabPage1.Controls.Add(this.SSO_ResponseURI);
+            this.tabPage1.Controls.Add(this.ClientIDLabel);
+            this.tabPage1.Controls.Add(this.SSO_ClientID);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Name = "tabPage1";
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(424, 312);
+            this.tabPage1.TabIndex = 2;
+            this.tabPage1.Text = "SSO";
+            this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // ScopesLabel
+            // 
+            this.ScopesLabel.AutoSize = true;
+            this.ScopesLabel.Location = new System.Drawing.Point(6, 129);
+            this.ScopesLabel.Name = "ScopesLabel";
+            this.ScopesLabel.Size = new System.Drawing.Size(43, 13);
+            this.ScopesLabel.TabIndex = 10;
+            this.ScopesLabel.Text = "Scopes";
+            // 
+            // SSO_Scopes
+            // 
+            this.SSO_Scopes.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.SSO_Scopes.Location = new System.Drawing.Point(6, 145);
+            this.SSO_Scopes.Name = "SSO_Scopes";
+            this.SSO_Scopes.Size = new System.Drawing.Size(412, 20);
+            this.SSO_Scopes.TabIndex = 9;
+            // 
+            // SecurityKeyLabel
+            // 
+            this.SecurityKeyLabel.AutoSize = true;
+            this.SecurityKeyLabel.Location = new System.Drawing.Point(6, 86);
+            this.SecurityKeyLabel.Name = "SecurityKeyLabel";
+            this.SecurityKeyLabel.Size = new System.Drawing.Size(66, 13);
+            this.SecurityKeyLabel.TabIndex = 8;
+            this.SecurityKeyLabel.Text = "Security Key";
+            // 
+            // SSO_SecurityKey
+            // 
+            this.SSO_SecurityKey.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.SSO_SecurityKey.Location = new System.Drawing.Point(6, 102);
+            this.SSO_SecurityKey.Name = "SSO_SecurityKey";
+            this.SSO_SecurityKey.Size = new System.Drawing.Size(412, 20);
+            this.SSO_SecurityKey.TabIndex = 7;
+            // 
+            // ResponseURILabel
+            // 
+            this.ResponseURILabel.AutoSize = true;
+            this.ResponseURILabel.Location = new System.Drawing.Point(6, 46);
+            this.ResponseURILabel.Name = "ResponseURILabel";
+            this.ResponseURILabel.Size = new System.Drawing.Size(77, 13);
+            this.ResponseURILabel.TabIndex = 6;
+            this.ResponseURILabel.Text = "Response URI";
+            // 
+            // SSO_ResponseURI
+            // 
+            this.SSO_ResponseURI.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.SSO_ResponseURI.Location = new System.Drawing.Point(6, 62);
+            this.SSO_ResponseURI.Name = "SSO_ResponseURI";
+            this.SSO_ResponseURI.Size = new System.Drawing.Size(412, 20);
+            this.SSO_ResponseURI.TabIndex = 5;
+            // 
+            // ClientIDLabel
+            // 
+            this.ClientIDLabel.AutoSize = true;
+            this.ClientIDLabel.Location = new System.Drawing.Point(6, 5);
+            this.ClientIDLabel.Name = "ClientIDLabel";
+            this.ClientIDLabel.Size = new System.Drawing.Size(47, 13);
+            this.ClientIDLabel.TabIndex = 4;
+            this.ClientIDLabel.Text = "Client ID";
+            // 
+            // SSO_ClientID
+            // 
+            this.SSO_ClientID.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.SSO_ClientID.Location = new System.Drawing.Point(6, 21);
+            this.SSO_ClientID.Name = "SSO_ClientID";
+            this.SSO_ClientID.Size = new System.Drawing.Size(412, 20);
+            this.SSO_ClientID.TabIndex = 3;
+            // 
             // tableLayoutPanel1
             // 
             this.tableLayoutPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -368,6 +475,8 @@
             this.staticDataTab.PerformLayout();
             this.tableLayoutPanel2.ResumeLayout(false);
             this.tableLayoutPanel2.PerformLayout();
+            this.tabPage1.ResumeLayout(false);
+            this.tabPage1.PerformLayout();
             this.tableLayoutPanel1.ResumeLayout(false);
             this.mainLayout.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -402,5 +511,14 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.TableLayoutPanel mainLayout;
+        private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.Label ClientIDLabel;
+        private System.Windows.Forms.TextBox SSO_ClientID;
+        private System.Windows.Forms.Label ResponseURILabel;
+        private System.Windows.Forms.TextBox SSO_ResponseURI;
+        private System.Windows.Forms.Label SecurityKeyLabel;
+        private System.Windows.Forms.TextBox SSO_SecurityKey;
+        private System.Windows.Forms.Label ScopesLabel;
+        private System.Windows.Forms.TextBox SSO_Scopes;
     }
 }

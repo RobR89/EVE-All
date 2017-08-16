@@ -1,11 +1,5 @@
-﻿using EVE_All_API.StaticData;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.IO.Compression;
+﻿using System.IO;
 using System.Xml;
-using YamlDotNet.RepresentationModel;
 
 namespace EVE_All_API
 {
@@ -63,6 +57,22 @@ namespace EVE_All_API
         /// The datasorce of the ESI server to use.
         /// </summary>
         public static string esiDatasource = "tranquility";
+        /// <summary>
+        /// The client ID for the SS) application.
+        /// </summary>
+        public static string sso_ClientID = "";
+        /// <summary>
+        /// The redirect uri for the SSO application.
+        /// </summary>
+        public static string sso_RedirectURI = "";
+        /// <summary>
+        /// The secutiry key for the SSO application.
+        /// </summary>
+        public static string sso_SecurityKey = "";
+        /// <summary>
+        /// The space delimeted string of scopes to request.
+        /// </summary>
+        public static string sso_Scopes = "";
 
         public static bool saveConfig()
         {
@@ -160,6 +170,22 @@ namespace EVE_All_API
             {
                 xmlUtils.newElement(root, "sdeZip", sdeZip);
             }
+            if (!string.IsNullOrWhiteSpace(sso_ClientID))
+            {
+                xmlUtils.newElement(root, "ssoClientID", sso_ClientID);
+            }
+            if (!string.IsNullOrWhiteSpace(sso_RedirectURI))
+            {
+                xmlUtils.newElement(root, "ssoRedirectURI", sso_RedirectURI);
+            }
+            if (!string.IsNullOrWhiteSpace(sso_SecurityKey))
+            {
+                xmlUtils.newElement(root, "ssoSecurityKey", sso_SecurityKey);
+            }
+            if (!string.IsNullOrWhiteSpace(sso_Scopes))
+            {
+                xmlUtils.newElement(root, "ssoScopes", sso_Scopes);
+            }
             return root;
         }
 
@@ -209,6 +235,18 @@ namespace EVE_All_API
                         break;
                     case "sdeZip":
                         sdeZip = node.InnerText;
+                        break;
+                    case "ssoClientID":
+                        sso_ClientID = node.InnerText;
+                        break;
+                    case "ssoRedirectURI":
+                        sso_RedirectURI = node.InnerText;
+                        break;
+                    case "ssoSecurityKey":
+                        sso_SecurityKey = node.InnerText;
+                        break;
+                    case "ssoScopes":
+                        sso_Scopes = node.InnerText;
                         break;
                 }
             }
