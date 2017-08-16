@@ -22,7 +22,7 @@ namespace EVE_All_API
         /// <param name="url">The url to fetch.</param>
         /// <param name="paged">True if page numbers should be used.</param>
         /// <returns>The List of items.</returns>
-        public static ESIList<T> getESIlist<T>(string url, bool paged)
+        public static ESIList<T> getESIlist<T>(string url)
         {
             int pageNum = 1;
             int pageCount = 1;
@@ -33,20 +33,14 @@ namespace EVE_All_API
                 found.Clear();
                 // Create page reference
                 string pageURL = url;
-                if (paged)
-                {
-                    pageURL = url + "&page=" + pageNum.ToString();
-                }
+                pageURL = url + "&page=" + pageNum.ToString();
                 JSON.ESIResponse resp = JSON.getESIPage(pageURL);
                 if (resp.code == System.Net.HttpStatusCode.OK)
                 {
                     JsonConvert.PopulateObject(resp.content, found);
                     result.items.AddRange(found);
                     result.expires = resp.expires;
-                    if(paged)
-                    {
-                        pageCount = resp.pages;
-                    }
+                    pageCount = resp.pages;
                 }
                 else
                 {
@@ -92,7 +86,7 @@ namespace EVE_All_API
             // Dates are converted to local time.
             public DateTime date;
             public DateTime expires;
-            public int pages;
+            public int pages = 0;
             public HttpStatusCode code;
         }
 
@@ -126,7 +120,6 @@ namespace EVE_All_API
             {
                 resp.date = DateTime.Parse(response.Headers.Get("date"));
                 resp.expires = DateTime.Parse(response.Headers.Get("expires"));
-                resp.pages = 0;
                 string pageString = response.Headers.Get("x-pages");
                 if (pageString != null)
                 {
