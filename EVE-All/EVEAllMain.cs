@@ -123,7 +123,7 @@ namespace EVE_All
             {
                 // loading succeded.
                 //PathTest();
-                PathTest();
+                //PathTest();
 
                 // Remove loader.
                 tabs.TabPages.Remove(loaderTab);
@@ -204,6 +204,7 @@ namespace EVE_All
             {
                 Market.saveAll(UserData.cachePath + "Market.cache");
             }
+            UserData.saveConfig();
         }
 
         private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -219,6 +220,11 @@ namespace EVE_All
                 }
             }
 
+        }
+
+        private void loginToCharacterToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SSO.startRequest();
         }
     }
 }

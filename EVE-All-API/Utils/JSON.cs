@@ -20,9 +20,9 @@ namespace EVE_All_API
         /// </summary>
         /// <typeparam name="T">The object type to be filled.</typeparam>
         /// <param name="url">The url to fetch.</param>
-        /// <param name="paged">True if page numbers should be used.</param>
+        /// <param name="token">The access token to use, or null if no token is to be used.</param>
         /// <returns>The List of items.</returns>
-        public static ESIList<T> getESIlist<T>(string url)
+        public static ESIList<T> getESIlist<T>(string url, AccessToken token = null)
         {
             int pageNum = 1;
             int pageCount = 1;
@@ -34,8 +34,8 @@ namespace EVE_All_API
                 // Create page reference
                 string pageURL = url;
                 pageURL = url + "&page=" + pageNum.ToString();
-                JSON.ESIResponse resp = JSON.getESIPage(pageURL);
-                if (resp.code == System.Net.HttpStatusCode.OK)
+                JSON.ESIResponse resp = JSON.getESIPage(pageURL, token);
+                if (resp?.code == System.Net.HttpStatusCode.OK)
                 {
                     JsonConvert.PopulateObject(resp.content, found);
                     result.items.AddRange(found);
@@ -63,12 +63,13 @@ namespace EVE_All_API
         /// </summary>
         /// <typeparam name="T">The Item Type to get.</typeparam>
         /// <param name="url">The URL to get the item from.</param>
+        /// <param name="token">The access token to use, or null if no token is to be used.</param>
         /// <returns>The Item information.</returns>
-        public static ESIItem<T> getESIItem<T>(string url) where T : new()
+        public static ESIItem<T> getESIItem<T>(string url, AccessToken token = null) where T : new()
         {
             ESIItem<T> result = new ESIItem<T>();
-            JSON.ESIResponse resp = JSON.getESIPage(url);
-            if (resp.code == System.Net.HttpStatusCode.OK)
+            JSON.ESIResponse resp = JSON.getESIPage(url, token);
+            if (resp?.code == System.Net.HttpStatusCode.OK)
             {
                 //result.item = new T();
                 JsonConvert.PopulateObject(resp.content, result.item);
@@ -94,8 +95,9 @@ namespace EVE_All_API
         /// Load a JSON page.  If the url does not begin with http the json server URL is prepended.
         /// </summary>
         /// <param name="url">The url to fetch.</param>
-        /// <returns>The page response.</returns>
-        public static ESIResponse getESIPage(string url)
+        /// <param name="token">The access token to use, or null if no token is to be used.</param>
+        /// <returns>The page response, or null if the token is expired and can't refresh.</returns>
+        public static ESIResponse getESIPage(string url, AccessToken token = null)
         {
             string useURL = url.Trim();
             if (!url.StartsWith("http"))
@@ -105,6 +107,19 @@ namespace EVE_All_API
             Uri uri = new Uri(useURL);
             HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(uri);
             request.Method = WebRequestMethods.Http.Get;
+            if(token != null)
+            {
+                if(token.isExpired())
+                {
+                    if(!token.refresh())
+                    {
+                        // Token refresh failed.
+                        return null;
+                    }
+                }
+                // Add the authorization header.
+                request.Headers.Add("Authorization", token.token_type + " " + token.access_token);
+            }
             HttpWebResponse response = null;
             ESIResponse resp = new ESIResponse();
             try
@@ -119,9 +134,13 @@ namespace EVE_All_API
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 resp.date = DateTime.Parse(response.Headers.Get("date"));
-                resp.expires = DateTime.Parse(response.Headers.Get("expires"));
+                string expiresString = response.Headers.Get("expires");
+                if (!String.IsNullOrEmpty(expiresString))
+                {
+                    resp.expires = DateTime.Parse(expiresString);
+                }
                 string pageString = response.Headers.Get("x-pages");
-                if (pageString != null)
+                if (!String.IsNullOrEmpty(pageString))
                 {
                     resp.pages = Int32.Parse(pageString);
                 }

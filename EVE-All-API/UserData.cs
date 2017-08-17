@@ -135,6 +135,9 @@ namespace EVE_All_API
             // Save API keys.
             XmlElement keys = APIKey.getSaveKeysNode(doc);
             root.AppendChild(keys);
+            // Save SSO tokens.
+            XmlElement tokens = SSO.getTokenNode(doc);
+            root.AppendChild(tokens);
             // Save language.
             xmlUtils.newElement(root, "language", language);
             // Save paths.
@@ -196,6 +199,7 @@ namespace EVE_All_API
         /// <returns>True if successful.</returns>
         public static bool loadConfig(XmlElement root)
         {
+            XmlNode tokenNode = null;
             foreach (XmlNode node in root.ChildNodes)
             {
                 if (node.Name == "rowset")
@@ -204,6 +208,11 @@ namespace EVE_All_API
                     if (nameAttr?.Value == "keys")
                     {
                         APIKey.loadKeys(node);
+                    }
+                    if (nameAttr?.Value == "SSO_Tokens")
+                    {
+                        // Save the token node to load last, we need to be sure the client_ID and security_key have been loaded.
+                        tokenNode = node;
                     }
                     continue;
                 }
@@ -249,6 +258,11 @@ namespace EVE_All_API
                         sso_Scopes = node.InnerText;
                         break;
                 }
+            }
+            // Now we can load the tokens.
+            if(tokenNode != null)
+            {
+                SSO.loadTokens(tokenNode);
             }
             return true;
         }
