@@ -1,5 +1,5 @@
 ## EVE-All
-Either this is Evil or EVE for All.
+Either this is Evil or EVE for All (and all for EVE).
 
 This is my EVE Online program... So far...
 

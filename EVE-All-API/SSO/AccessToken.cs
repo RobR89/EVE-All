@@ -87,7 +87,7 @@ namespace EVE_All_API
         public void getCharacterInfo()
         {
             string url = "https://login.eveonline.com/oauth/verify";
-            JSON.ESIResponse resp = JSON.getESIPage(url, this);
+            JSON.ESIResponse resp = JSON.getESIPage(url, null, this);
             if (resp?.code == HttpStatusCode.OK)
             {
                 Pilot pilot = Pilot.getPilot(CharacterID);

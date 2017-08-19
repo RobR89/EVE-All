@@ -20,9 +20,10 @@ namespace EVE_All_API
         /// </summary>
         /// <typeparam name="T">The object type to be filled.</typeparam>
         /// <param name="url">The url to fetch.</param>
+        /// <param name="query">The query parameters.</param>
         /// <param name="token">The access token to use, or null if no token is to be used.</param>
         /// <returns>The List of items.</returns>
-        public static ESIList<T> getESIlist<T>(string url, AccessToken token = null)
+        public static ESIList<T> getESIlist<T>(string url, string query = null, AccessToken token = null)
         {
             int pageNum = 1;
             int pageCount = 1;
@@ -34,7 +35,7 @@ namespace EVE_All_API
                 // Create page reference
                 string pageURL = url;
                 pageURL = url + "&page=" + pageNum.ToString();
-                JSON.ESIResponse resp = JSON.getESIPage(pageURL, token);
+                JSON.ESIResponse resp = JSON.getESIPage(pageURL, query, token);
                 if (resp?.code == System.Net.HttpStatusCode.OK)
                 {
                     JsonConvert.PopulateObject(resp.content, found);
@@ -63,12 +64,13 @@ namespace EVE_All_API
         /// </summary>
         /// <typeparam name="T">The Item Type to get.</typeparam>
         /// <param name="url">The URL to get the item from.</param>
+        /// <param name="query">The query parameters.</param>
         /// <param name="token">The access token to use, or null if no token is to be used.</param>
         /// <returns>The Item information.</returns>
-        public static ESIItem<T> getESIItem<T>(string url, AccessToken token = null) where T : new()
+        public static ESIItem<T> getESIItem<T>(string url, string query = null, AccessToken token = null) where T : new()
         {
             ESIItem<T> result = new ESIItem<T>();
-            JSON.ESIResponse resp = JSON.getESIPage(url, token);
+            JSON.ESIResponse resp = JSON.getESIPage(url, query, token);
             if (resp?.code == System.Net.HttpStatusCode.OK)
             {
                 //result.item = new T();
@@ -95,16 +97,39 @@ namespace EVE_All_API
         /// Load a JSON page.  If the url does not begin with http the json server URL is prepended.
         /// </summary>
         /// <param name="url">The url to fetch.</param>
+        /// <param name="query">The query parameters.</param>
         /// <param name="token">The access token to use, or null if no token is to be used.</param>
         /// <returns>The page response, or null if the token is expired and can't refresh.</returns>
-        public static ESIResponse getESIPage(string url, AccessToken token = null)
+        /// <remarks>path should not begin with / or \</remarks>
+        /// <remarks>path should end with /</remarks>
+        /// <remarks>query should begin with &</remarks>
+        public static ESIResponse getESIPage(string url, string query, AccessToken token = null)
         {
             string useURL = url.Trim();
             if (!url.StartsWith("http"))
             {
-                useURL = UserData.esiURL + url;
+                // Remove leading slashes.
+                while (useURL.StartsWith("/") || useURL.StartsWith("\\"))
+                {
+                    useURL = useURL.Remove(0, 1);
+                }
+                // Make sure it ends with a slash/
+                if (!useURL.EndsWith("/") && !useURL.EndsWith("\\"))
+                {
+                    useURL = useURL + "/";
+                }
+                useURL = UserData.esiURL + useURL + "?datasource=" + UserData.esiDatasource;
             }
-            Uri uri = new Uri(useURL);
+            if (query?.Length > 0)
+            {
+                // Make sure query starts with &
+                if (!query.StartsWith("&"))
+                {
+                    useURL += "&";
+                }
+                useURL += query;
+            }
+            Uri uri = new Uri(useURL + query);
             HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(uri);
             request.Method = WebRequestMethods.Http.Get;
             if(token != null)
