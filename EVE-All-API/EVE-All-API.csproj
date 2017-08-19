@@ -159,7 +159,6 @@
     <Compile Include="ESI\Market.cs" />
     <Compile Include="ESI\Sovereignty.cs" />
     <Compile Include="GameState\Alliance.cs" />
-    <Compile Include="GameState\APIKey.cs" />
     <Compile Include="Loader.cs" />
     <Compile Include="SSO\AccessToken.cs" />
     <Compile Include="StaticData\Blueprint.cs" />
@@ -192,7 +191,6 @@
     <Compile Include="StaticData\Stargate.cs" />
     <Compile Include="UserData.cs" />
     <Compile Include="SSO\SSO.cs" />
-    <Compile Include="Utils\xmlManager.cs" />
     <Compile Include="Utils\xmlUtils.cs" />
     <Compile Include="Utils\YamlUtils.cs" />
   </ItemGroup>

@@ -30,6 +30,51 @@ namespace EVE_All_API
             token.getCharacterInfo();
             AccessTokenAdded?.Invoke(token);
         }
+
+        public static List<AccessToken> getTokensForCharacter(long characterID)
+        {
+            List<AccessToken> tokens = new List<AccessToken>();
+            lock (accessTokens)
+            {
+                foreach (AccessToken token in accessTokens)
+                {
+                    if (token?.CharacterID == characterID)
+                    {
+                        tokens.Add(token);
+                    }
+                }
+            }
+            return tokens;
+        }
+
+        public static AccessToken getFirstTokenForCharacter(long characterID)
+        {
+            lock (accessTokens)
+            {
+                foreach (AccessToken token in accessTokens)
+                {
+                    if (token?.CharacterID == characterID)
+                    {
+                        return token;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public static AccessToken getTokenForCharacterWithScope(long characterID, string scope)
+        {
+            List<AccessToken> tokens = getTokensForCharacter(characterID);
+            foreach(AccessToken token in tokens)
+            {
+                if(token?.hasScope(scope) == true)
+                {
+                    return token;
+                }
+            }
+            return null;
+        }
+
         public static AccessToken addToken(string access_token, string token_type, string refresh_token, long expires_in)
         {
             AccessToken token = new AccessToken();
@@ -84,6 +129,20 @@ namespace EVE_All_API
         public string TokenType = null;
         public string CharacterOwnerHash = null;
 
+        /// <summary>
+        /// Check to see if the token has the desited scope.
+        /// </summary>
+        /// <param name="scope">The scope to find.</param>
+        /// <returns>True if the token has the scope.</returns>
+        public bool hasScope(string scope)
+        {
+            string[] scopes = Scopes.Split(' ');
+            return Array.IndexOf(scopes, scope) > -1;
+        }
+
+        /// <summary>
+        /// Get the character info from the auth server.
+        /// </summary>
         public void getCharacterInfo()
         {
             string url = "https://login.eveonline.com/oauth/verify";
@@ -92,7 +151,7 @@ namespace EVE_All_API
             {
                 Pilot pilot = Pilot.getPilot(CharacterID);
                 JsonConvert.PopulateObject(resp.content, this);
-                pilot.characterName = CharacterName;
+                pilot.characterSheet.name = CharacterName;
             }
         }
 

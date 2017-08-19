@@ -30,12 +30,11 @@
         {
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.manageAPIKeysToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loginToCharacterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabs = new System.Windows.Forms.TabControl();
-            this.loginToCharacterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -52,7 +51,6 @@
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.manageAPIKeysToolStripMenuItem,
             this.optionsToolStripMenuItem,
             this.loginToCharacterToolStripMenuItem,
             this.toolStripSeparator1,
@@ -61,19 +59,19 @@
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "&File";
             // 
-            // manageAPIKeysToolStripMenuItem
-            // 
-            this.manageAPIKeysToolStripMenuItem.Name = "manageAPIKeysToolStripMenuItem";
-            this.manageAPIKeysToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
-            this.manageAPIKeysToolStripMenuItem.Text = "&Manage API keys";
-            this.manageAPIKeysToolStripMenuItem.Click += new System.EventHandler(this.manageAPIKeysToolStripMenuItem_Click);
-            // 
             // optionsToolStripMenuItem
             // 
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             this.optionsToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.optionsToolStripMenuItem.Text = "&Options";
             this.optionsToolStripMenuItem.Click += new System.EventHandler(this.optionsToolStripMenuItem_Click);
+            // 
+            // loginToCharacterToolStripMenuItem
+            // 
+            this.loginToCharacterToolStripMenuItem.Name = "loginToCharacterToolStripMenuItem";
+            this.loginToCharacterToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.loginToCharacterToolStripMenuItem.Text = "Login to Character";
+            this.loginToCharacterToolStripMenuItem.Click += new System.EventHandler(this.loginToCharacterToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
@@ -95,13 +93,6 @@
             this.tabs.SelectedIndex = 0;
             this.tabs.Size = new System.Drawing.Size(593, 324);
             this.tabs.TabIndex = 1;
-            // 
-            // loginToCharacterToolStripMenuItem
-            // 
-            this.loginToCharacterToolStripMenuItem.Name = "loginToCharacterToolStripMenuItem";
-            this.loginToCharacterToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
-            this.loginToCharacterToolStripMenuItem.Text = "Login to Character";
-            this.loginToCharacterToolStripMenuItem.Click += new System.EventHandler(this.loginToCharacterToolStripMenuItem_Click);
             // 
             // EVEAllMain
             // 
@@ -125,7 +116,6 @@
 
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem manageAPIKeysToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.TabControl tabs;

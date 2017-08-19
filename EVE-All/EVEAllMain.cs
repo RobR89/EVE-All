@@ -1,5 +1,4 @@
-﻿using EVE_All.KeyManagement;
-using EVE_All.Tabs;
+﻿using EVE_All.Tabs;
 using EVE_All_API;
 using EVE_All_API.ESI;
 using EVE_All_API.StaticData;
@@ -46,7 +45,7 @@ namespace EVE_All
 
         private TabPage loaderTab;
         private TabPage marketTab;
-        private Dictionary<long, TabPage> pilotTabs = new Dictionary<long, TabPage>();
+        private TabPage pilotListTab;
 
         public EVEAllMain()
         {
@@ -62,20 +61,12 @@ namespace EVE_All
             // Load configuration info.
             UserData.loadConfig(configPath + "/EVE-All.xml");
 
-            //Market.updateMarketGroups();
-            //Market.updateMarketValues();
-            //Market.updateRegionMarket(999);
-            //Market.updateRegionMarket(10000030);
-            //List<long> orderIDs = Market.getOrdersForTypeAndRegion(34, 10000030);
-            //Market.MarketEntry order = Market.getOrder(orderIDs[0]);
-            //Sovereignty.updateStructures();
-            //Sovereignty.Structure str = Sovereignty.getStructure(1022679654375);
-            //Sovereignty.updateMap();
-            //Sovereignty.Map map = Sovereignty.getMap(30000721);
-
             InitializeComponent();
+
+            // Check for existance of SDE files. Open dialog if they cannot be found.
             while (UserData.sdeZip == null || !File.Exists(UserData.sdeZip))
             {
+                // TO-DO: add dialog informing user of where they can download the files from with a clickable link.
                 OpenFileDialog getZipDialog = new OpenFileDialog();
                 getZipDialog.Title = "Requires 'SDE'.zip file";
                 getZipDialog.Filter = "ZIP files|*.zip";
@@ -122,12 +113,14 @@ namespace EVE_All
             if (args?.loaderSuccess == true && args?.imageSuccess == true)
             {
                 // loading succeded.
-                //PathTest();
-                //PathTest();
-
                 // Remove loader.
                 tabs.TabPages.Remove(loaderTab);
-                // To-DO: Add new tabs...
+
+                // Create pilot list tab
+                pilotListTab = new TabPage("Characters");
+                pilotListTab.Dock = DockStyle.Fill;
+                pilotListTab.Controls.Add(new PilotListTab());
+                tabs.TabPages.Add(pilotListTab);
 
                 // Create market browser tab
                 marketTab = new TabPage("Market");
@@ -135,67 +128,18 @@ namespace EVE_All
                 marketTab.Controls.Add(new MarketBrowserTab());
                 tabs.TabPages.Add(marketTab);
 
-                // Add characters.
-                List<long> charIDs = APIKey.getAllCharacterIDs();
-                foreach (long charID in charIDs)
-                {
-                    Pilot pilot = Pilot.getPilot(charID);
-                    // Create the pilot tab.
-                    PilotTab pTab = new PilotTab(pilot);
-                    // Create the tab container.
-                    TabPage pilotTab = new TabPage(pilot.characterName);
-                    pTab.Dock = DockStyle.Fill;
-                    // Add loader to tabs.
-                    pilotTab.Controls.Add(pTab);
-                    tabs.TabPages.Add(pilotTab);
-                }
             }
             else
             {
                 // Loading failed.
+                // TO-DO: display a reason...
                 Close();
             }
-        }
-
-        private void PathTest()
-        {
-            DateTime s = DateTime.Now;
-            SolarSystem start = SolarSystem.getSystem(30002510);
-            List<int> path = start.findPath(30000142, true);
-            if (path == null)
-            {
-                System.Diagnostics.Debug.WriteLine("Path not found.");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine(path.Count + " jumps.");
-                foreach (int systemID in path)
-                {
-                    //SolarSystem system = SolarSystem.getSystem(systemID);
-                    System.Diagnostics.Debug.WriteLine(systemID + ": " + InvNames.getName(systemID));
-                }
-            }
-            DateTime f = DateTime.Now;
-            TimeSpan ts = f - s;
-            System.Diagnostics.Debug.WriteLine("Path test took: " + ts.TotalMilliseconds + " ms");
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close();
-        }
-
-        private void manageAPIKeysToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            using (ManageKeys manage = new ManageKeys())
-            {
-                DialogResult result = manage.ShowDialog();
-                if(result == DialogResult.OK)
-                {
-                    // Save the updated configuration to file.
-                    UserData.saveConfig();
-                }
-            }
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)

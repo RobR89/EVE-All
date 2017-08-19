@@ -30,7 +30,6 @@ namespace EVE_All_API
 
         public readonly long corporationID;
         public string corporationName;
-        public List<APIKey> keys = null;
 
         private Corporation(long _corporationID)
         {

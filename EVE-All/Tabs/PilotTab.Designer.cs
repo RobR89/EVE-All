@@ -48,6 +48,9 @@
             this.perceptionLabel = new System.Windows.Forms.Label();
             this.willpowerLabel = new System.Windows.Forms.Label();
             this.charismaLabel = new System.Windows.Forms.Label();
+            this.lastRemapLabel = new System.Windows.Forms.Label();
+            this.nextRemapLabel = new System.Windows.Forms.Label();
+            this.BonusRemapLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pilotImage)).BeginInit();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
@@ -183,15 +186,20 @@
             // 
             // flowLayoutPanel3
             // 
+            this.flowLayoutPanel3.AutoSize = true;
+            this.flowLayoutPanel3.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.flowLayoutPanel3.Controls.Add(this.intelligenceLabel);
             this.flowLayoutPanel3.Controls.Add(this.memoryLabel);
             this.flowLayoutPanel3.Controls.Add(this.perceptionLabel);
             this.flowLayoutPanel3.Controls.Add(this.willpowerLabel);
             this.flowLayoutPanel3.Controls.Add(this.charismaLabel);
+            this.flowLayoutPanel3.Controls.Add(this.lastRemapLabel);
+            this.flowLayoutPanel3.Controls.Add(this.nextRemapLabel);
+            this.flowLayoutPanel3.Controls.Add(this.BonusRemapLabel);
             this.flowLayoutPanel3.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel3.Location = new System.Drawing.Point(134, 3);
             this.flowLayoutPanel3.Name = "flowLayoutPanel3";
-            this.flowLayoutPanel3.Size = new System.Drawing.Size(137, 120);
+            this.flowLayoutPanel3.Size = new System.Drawing.Size(85, 104);
             this.flowLayoutPanel3.TabIndex = 1;
             // 
             // intelligenceLabel
@@ -239,6 +247,33 @@
             this.charismaLabel.TabIndex = 4;
             this.charismaLabel.Text = "Charisma";
             // 
+            // lastRemapLabel
+            // 
+            this.lastRemapLabel.AutoSize = true;
+            this.lastRemapLabel.Location = new System.Drawing.Point(3, 65);
+            this.lastRemapLabel.Name = "lastRemapLabel";
+            this.lastRemapLabel.Size = new System.Drawing.Size(59, 13);
+            this.lastRemapLabel.TabIndex = 5;
+            this.lastRemapLabel.Text = "Last remap";
+            // 
+            // nextRemapLabel
+            // 
+            this.nextRemapLabel.AutoSize = true;
+            this.nextRemapLabel.Location = new System.Drawing.Point(3, 78);
+            this.nextRemapLabel.Name = "nextRemapLabel";
+            this.nextRemapLabel.Size = new System.Drawing.Size(66, 13);
+            this.nextRemapLabel.TabIndex = 6;
+            this.nextRemapLabel.Text = "Next Remap";
+            // 
+            // BonusRemapLabel
+            // 
+            this.BonusRemapLabel.AutoSize = true;
+            this.BonusRemapLabel.Location = new System.Drawing.Point(3, 91);
+            this.BonusRemapLabel.Name = "BonusRemapLabel";
+            this.BonusRemapLabel.Size = new System.Drawing.Size(79, 13);
+            this.BonusRemapLabel.TabIndex = 7;
+            this.BonusRemapLabel.Text = "Bonus Remaps";
+            // 
             // PilotTab
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -257,6 +292,7 @@
             this.Size = new System.Drawing.Size(409, 477);
             ((System.ComponentModel.ISupportInitialize)(this.pilotImage)).EndInit();
             this.flowLayoutPanel1.ResumeLayout(false);
+            this.flowLayoutPanel1.PerformLayout();
             this.flowLayoutPanel2.ResumeLayout(false);
             this.flowLayoutPanel2.PerformLayout();
             this.flowLayoutPanel3.ResumeLayout(false);
@@ -288,5 +324,8 @@
         private System.Windows.Forms.Label perceptionLabel;
         private System.Windows.Forms.Label willpowerLabel;
         private System.Windows.Forms.Label charismaLabel;
+        private System.Windows.Forms.Label lastRemapLabel;
+        private System.Windows.Forms.Label nextRemapLabel;
+        private System.Windows.Forms.Label BonusRemapLabel;
     }
 }

@@ -96,18 +96,6 @@
     <Compile Include="EVEAllMain.Designer.cs">
       <DependentUpon>EVEAllMain.cs</DependentUpon>
     </Compile>
-    <Compile Include="Dialogs\KeyManagement\AddKey.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Dialogs\KeyManagement\AddKey.Designer.cs">
-      <DependentUpon>AddKey.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Dialogs\KeyManagement\ManageKeys.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Dialogs\KeyManagement\ManageKeys.Designer.cs">
-      <DependentUpon>ManageKeys.cs</DependentUpon>
-    </Compile>
     <Compile Include="Tabs\LoaderTab.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -128,20 +116,21 @@
     <Compile Include="Tabs\MarketBrowserTab.Designer.cs">
       <DependentUpon>MarketBrowserTab.cs</DependentUpon>
     </Compile>
+    <Compile Include="Tabs\PilotListTab.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Tabs\PilotListTab.Designer.cs">
+      <DependentUpon>PilotListTab.cs</DependentUpon>
+    </Compile>
     <Compile Include="Tabs\PilotTab.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Tabs\PilotTab.Designer.cs">
       <DependentUpon>PilotTab.cs</DependentUpon>
     </Compile>
+    <Compile Include="Tests.cs" />
     <EmbeddedResource Include="EVEAllMain.resx">
       <DependentUpon>EVEAllMain.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Dialogs\KeyManagement\AddKey.resx">
-      <DependentUpon>AddKey.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Dialogs\KeyManagement\ManageKeys.resx">
-      <DependentUpon>ManageKeys.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Tabs\LoaderTab.resx">
       <DependentUpon>LoaderTab.cs</DependentUpon>
@@ -160,6 +149,9 @@
     </Compile>
     <EmbeddedResource Include="Tabs\MarketBrowserTab.resx">
       <DependentUpon>MarketBrowserTab.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tabs\PilotListTab.resx">
+      <DependentUpon>PilotListTab.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Tabs\PilotTab.resx">
       <DependentUpon>PilotTab.cs</DependentUpon>

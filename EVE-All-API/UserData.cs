@@ -132,9 +132,6 @@ namespace EVE_All_API
         {
             // Create the config root.
             XmlNode root = doc.CreateElement("EVE-All-API");
-            // Save API keys.
-            XmlElement keys = APIKey.getSaveKeysNode(doc);
-            root.AppendChild(keys);
             // Save SSO tokens.
             XmlElement tokens = SSO.getTokenNode(doc);
             root.AppendChild(tokens);
@@ -205,10 +202,6 @@ namespace EVE_All_API
                 if (node.Name == "rowset")
                 {
                     XmlNode nameAttr = node.Attributes.GetNamedItem("name");
-                    if (nameAttr?.Value == "keys")
-                    {
-                        APIKey.loadKeys(node);
-                    }
                     if (nameAttr?.Value == "SSO_Tokens")
                     {
                         // Save the token node to load last, we need to be sure the client_ID and security_key have been loaded.

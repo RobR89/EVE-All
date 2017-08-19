@@ -23,39 +23,81 @@ namespace EVE_All.Tabs
             InitializeComponent();
             Dock = DockStyle.Fill;
             // Update pilot info.
-            updateInfo();
+            pilot.esiUpdate += Pilot_esiUpdate;
+            requestUpdate();
         }
 
-        public void updateInfo()
+        private void Pilot_esiUpdate(Pilot.PilotEvent e)
+        {
+            if(InvokeRequired)
+            {
+                // Insure this is called in a GUI friendly thread.
+                Invoke((MethodInvoker)delegate{ Pilot_esiUpdate(e); });
+                return;
+            }
+            switch (e)
+            {
+                case Pilot.PilotEvent.CharacterSheetUpdate:
+                    updateCharacterSheet();
+                    break;
+                case Pilot.PilotEvent.AttributesUpdate:
+                    updateAttributes();
+                    break;
+                case Pilot.PilotEvent.ImageLoaded:
+                    // Get pilot image.
+                    pilotImage.Image = pilot.pilotImage;
+                    break;
+            }
+        }
+
+        public void requestUpdate()
         {
             // Update pilot info.
-            pilot.loadCharacterSheet();
-            // Get pilot image.
-            pilotImage.Image = pilot.getImage(128);
-            // Set unchanging info.
-            nameLabel.Text = pilot.characterName;
-            raceLabel.Text = (pilot.male ? "Male" : "Female") + " - " + pilot.race + " - " + pilot.bloodLine + " - " + pilot.ancestry;
-            BirthdayLabel.Text = "Birthday: " + pilot.birthday.ToLocalTime().ToString();
-            // Update changable info.
-            balanceLabel.Text = "Balance: " + pilot.balance.ToString("N") + " ISK";
-            // Update membership info.
-            Corporation corp = Corporation.getCorporation(pilot.corporationID);
-            corporationLabel.Text = "Corporation: " + corp?.corporationName;
-            Alliance alliance = Alliance.getAlliance(pilot.allianceID);
-            allianceLabel.Text = "Alliance: " + alliance?.allianceName;
-            Faction faction = Faction.getFaction(pilot.factionID);
-            factionLabel.Text = "Faction: " + faction?.factionName;
-            // Update clone info.
-            cloneNameLabel.Text = pilot.cloneName;
-            InvType type = InvType.getType(pilot.cloneTypeID);
-            cloneTypeLabel.Text = type.name;
-            cloneSkillPointsLabel.Text = pilot.cloneSkillPoints.ToString("N");
+            new Task(pilot.loadCharacterSheet).Start();
+            new Task(pilot.loadAttributes).Start();
+            new Task(() => pilot.loadImage(128)).Start();
+
+            //balanceLabel.Text = "Balance: " + pilot.balance.ToString("N") + " ISK";
+            //// Update membership info.
+            //Corporation corp = Corporation.getCorporation(pilot.corporationID);
+            //corporationLabel.Text = "Corporation: " + corp?.corporationName;
+            //Alliance alliance = Alliance.getAlliance(pilot.allianceID);
+            //allianceLabel.Text = "Alliance: " + alliance?.allianceName;
+            //Faction faction = Faction.getFaction(pilot.factionID);
+            //factionLabel.Text = "Faction: " + faction?.factionName;
+            //// Update clone info.
+            //cloneNameLabel.Text = pilot.cloneName;
+            //InvType type = InvType.getType(pilot.cloneTypeID);
+            //cloneTypeLabel.Text = type.name;
+            //cloneSkillPointsLabel.Text = pilot.cloneSkillPoints.ToString("N");
+        }
+
+        private void updateCharacterSheet()
+        {
+            nameLabel.Text = pilot.characterSheet.name;
+            // TO-DO: load actual names once chrBloodlines, chrRace, and chrAncestries are loaded.
+            // Populate the race, bloodline, and ancestry.
+            string race = pilot.characterSheet.race_id.ToString();
+            string bloodLine = pilot.characterSheet.bloodLine_id.ToString();
+            string ancestry = pilot.characterSheet.ancestry_id.ToString();
+            raceLabel.Text = pilot.characterSheet.gender + " - " + race + " - " + bloodLine + " - " + ancestry;
+            // Update the birthday.
+            BirthdayLabel.Text = "Birthday: " + pilot.characterSheet.birthday.ToString();
+            // Update security status.
+            securityLabel.Text = "SecurityStatus: " + pilot.characterSheet.security_status.ToString();
+        }
+
+        private void updateAttributes()
+        {
             // Update attributes.
-            intelligenceLabel.Text = "Intelligence: " + pilot.effectiveIntelligence.ToString();
-            memoryLabel.Text = "Memory: " + pilot.effectiveMemory.ToString();
-            perceptionLabel.Text = "Perception: " + pilot.effectivePerception.ToString();
-            willpowerLabel.Text = "Willpower: " + pilot.effectiveWillpower.ToString();
-            charismaLabel.Text = "Charisma: " + pilot.effectiveCharisma.ToString();
+            intelligenceLabel.Text = "Intelligence: " + pilot.characterAttributes.intelligence.ToString();
+            memoryLabel.Text = "Memory: " + pilot.characterAttributes.memory.ToString();
+            perceptionLabel.Text = "Perception: " + pilot.characterAttributes.perception.ToString();
+            willpowerLabel.Text = "Willpower: " + pilot.characterAttributes.willpower.ToString();
+            charismaLabel.Text = "Charisma: " + pilot.characterAttributes.charisma.ToString();
+            lastRemapLabel.Text = "Last remap: " + pilot.characterAttributes.last_remap_date.ToString();
+            nextRemapLabel.Text = "Next remap: " + pilot.characterAttributes.accrued_remap_cooldown_date.ToString();
+            BonusRemapLabel.Text = "Bonus remap: " + pilot.characterAttributes.bonus_remaps.ToString();
         }
 
     }
