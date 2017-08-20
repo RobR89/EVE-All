@@ -208,6 +208,8 @@ namespace EVE_All_API
                 string content = reader.ReadToEnd();
                 JsonConvert.PopulateObject(content, this);
                 generated = DateTime.Now;
+                // Auto save the new token as refresh tokens can only be used once and we don't want to loose the new token.
+                UserData.saveConfig();
                 return true;
             }
             else
