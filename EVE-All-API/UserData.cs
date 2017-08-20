@@ -74,6 +74,10 @@ namespace EVE_All_API
         /// </summary>
         public static string sso_Scopes = "";
 
+        /// <summary>
+        /// Save the config to the last specified config file.
+        /// </summary>
+        /// <returns>True if successful.</returns>
         public static bool saveConfig()
         {
             if(configFile == null || configFile.Length == 0)
@@ -82,6 +86,8 @@ namespace EVE_All_API
             }
             return saveConfig(configFile);
         }
+
+        private static object onlyOne = new object();
         /// <summary>
         /// Save the EVE-All-API configuration information to an xml file.
         /// </summary>
@@ -89,12 +95,16 @@ namespace EVE_All_API
         /// <returns>True if successful.</returns>
         public static bool saveConfig(string file)
         {
-            // Create the document.
-            XmlDocument doc = new XmlDocument();
-            doc.AppendChild(getSave(doc));
-            // Save document to file.
-            doc.Save(file);
-            return true;
+            // Only allow one save at a time.
+            lock (onlyOne)
+            {
+                // Create the document.
+                XmlDocument doc = new XmlDocument();
+                doc.AppendChild(getSave(doc));
+                // Save document to file.
+                doc.Save(file);
+                return true;
+            }
         }
 
         private static string configFile = "";
