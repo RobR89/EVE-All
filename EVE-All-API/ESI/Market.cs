@@ -9,18 +9,19 @@ namespace EVE_All_API.ESI
 {
     public class Market
     {
-        public static void saveAll(string fileName)
+#region caching
+        public static void SaveAll(string fileName)
         {
             string dir = Path.GetDirectoryName(fileName);
             Directory.CreateDirectory(dir);
             FileStream file = File.Open(fileName, FileMode.Create);
             BinaryWriter save = new BinaryWriter(file);
             // Save the data.
-            saveMarketValues(save);
-            saveMarketOrders(save);
+            SaveMarketValues(save);
+            SaveMarketOrders(save);
         }
 
-        public static void loadAll(string fileName)
+        public static void LoadAll(string fileName)
         {
             if(!File.Exists(fileName))
             {
@@ -29,9 +30,68 @@ namespace EVE_All_API.ESI
             FileStream file = File.Open(fileName, FileMode.Open);
             BinaryReader load = new BinaryReader(file);
             // Load the data.
-            loadMarketValues(load);
-            loadMarketOrders(load);
+            LoadMarketValues(load);
+            LoadMarketOrders(load);
         }
+
+        public static void SaveMarketOrders(BinaryWriter save)
+        {
+            lock (regionPages)
+            {
+                // Save the expire time.
+                save.Write(regionPages.Count);
+                foreach (MarketRegionPage region in regionPages.Values)
+                {
+                    region.Save(save);
+                }
+            }
+        }
+
+        public static void LoadMarketOrders(BinaryReader load)
+        {
+            lock (marketOrders)
+            {
+                // Load the expire time.
+                int entries = load.ReadInt32();
+                for (int i = 0; i < entries; i++)
+                {
+                    MarketRegionPage page = new MarketRegionPage(load);
+                }
+            }
+        }
+
+        public static void SaveMarketValues(BinaryWriter save)
+        {
+            lock (marketValues)
+            {
+                // Save the expire time.
+                save.Write(pricesPage.expire.Ticks);
+                // Save the number of entries.
+                save.Write(marketValues.Count);
+                foreach (MarketValue value in marketValues.Values)
+                {
+                    value.Save(save);
+                }
+            }
+        }
+
+        public static void LoadMarketValues(BinaryReader load)
+        {
+            lock (marketValues)
+            {
+                // Load the expire time.
+                pricesPage.expire = new DateTime(load.ReadInt64());
+                // Load the number of entries.
+                int entries = load.ReadInt32();
+                for (int i = 0; i < entries; i++)
+                {
+                    MarketValue value = new MarketValue(load);
+                    marketValues[value.type_id] = value;
+                }
+            }
+        }
+
+        #endregion caching
 
         #region MarketOrder
         public class MarketOrder
@@ -69,7 +129,7 @@ namespace EVE_All_API.ESI
                 regionID = load.ReadInt32();
             }
 
-            public void save(BinaryWriter save)
+            public void Save(BinaryWriter save)
             {
                 save.Write(order_id);
                 save.Write(type_id);
@@ -85,16 +145,87 @@ namespace EVE_All_API.ESI
                 save.Write(regionID);
             }
 
-            public bool isExpired()
+            public bool IsOrderExpired()
             {
                 double age = (DateTime.Now - issued).TotalDays;
                 return age > duration;
             }
         }
 
+        private class MarketRegionPage : ESIList<MarketOrder>
+        {
+            public int regionID;
+            public MarketRegionPage(BinaryReader load)
+            {
+                regionID = load.ReadInt32();
+                expire = new DateTime(load.ReadInt64());
+                SetUpESI();
+                // Load the number of entries.
+                int entries = load.ReadInt32();
+                for (int i = 0; i < entries; i++)
+                {
+                    MarketOrder order = new MarketOrder(load);
+                    items.Add(order);
+                    AddOrder(order);
+                }
+            }
+
+            public MarketRegionPage(int region_ID)
+            {
+                regionID = region_ID;
+                SetUpESI();
+            }
+            private void SetUpESI()
+            {
+                // Set up ESI page.
+                url = "markets/" + regionID + "/orders/";
+                autoUpdate = false;
+                query = new Dictionary<string, string>
+                {
+                    ["order_type"] = "all"
+                };
+            }
+
+            public void Save(BinaryWriter save)
+            {
+                save.Write(regionID);
+                save.Write(expire.Ticks);
+                // Save the number of entries.
+                save.Write(items.Count);
+                foreach (MarketOrder order in items)
+                {
+                    order.Save(save);
+                }
+            }
+
+        }
+        private static Dictionary<int, MarketRegionPage> regionPages = new Dictionary<int, MarketRegionPage>();
+
+        public static void UpdateRegionMarket(int regionID)
+        {
+            lock (regionPages)
+            {
+                if (!regionPages.ContainsKey(regionID))
+                {
+                    regionPages[regionID] = new MarketRegionPage(regionID);
+                }
+                JSON.JSONResponse resp = regionPages[regionID].GetPage();
+                if (resp.httpCode == System.Net.HttpStatusCode.OK)
+                {
+                    lock (marketOrders)
+                    {
+                        foreach (MarketOrder order in regionPages[regionID].items)
+                        {
+                            order.regionID = regionID;
+                            AddOrder(order);
+                        }
+                    }
+                }
+            }
+        }
+
         private static Dictionary<long, MarketOrder> marketOrders = new Dictionary<long, MarketOrder>();
-        private static Dictionary<int, DateTime> marketRegionExpire = new Dictionary<int, DateTime>();
-        public static MarketOrder getOrder(long orderID)
+        public static MarketOrder GetOrder(long orderID)
         {
             lock(marketOrders)
             {
@@ -106,7 +237,7 @@ namespace EVE_All_API.ESI
             return null;
         }
         private static Dictionary<int, List<long>> typeOrders = new Dictionary<int, List<long>>();
-        public static List<long> getOrdersForType(int typeID)
+        public static List<long> GetOrdersForType(int typeID)
         {
             List<long> result = new List<long>();
             lock (marketOrders)
@@ -119,7 +250,7 @@ namespace EVE_All_API.ESI
             return result;
         }
         private static Dictionary<int, List<long>> regionOrders = new Dictionary<int, List<long>>();
-        public static List<long> getOrdersForRegion(int regionID)
+        public static List<long> GetOrdersForRegion(int regionID)
         {
             List<long> result = new List<long>();
             lock (marketOrders)
@@ -131,52 +262,11 @@ namespace EVE_All_API.ESI
             }
             return result;
         }
-        public static List<long> getOrdersForTypeAndRegion(int typeID, int regionID)
+        public static List<long> GetOrdersForTypeAndRegion(int typeID, int regionID)
         {
-            List<long> type = getOrdersForType(typeID);
-            List<long> region = getOrdersForRegion(regionID);
+            List<long> type = GetOrdersForType(typeID);
+            List<long> region = GetOrdersForRegion(regionID);
             return new List<long>(type.Intersect(region));
-        }
-
-        public static void saveMarketOrders(BinaryWriter save)
-        {
-            lock (marketOrders)
-            {
-                // Save the expire time.
-                save.Write(marketRegionExpire.Count);
-                foreach (var region in marketRegionExpire)
-                {
-                    save.Write(region.Key);
-                    save.Write(region.Value.Ticks);
-                }
-                // Save the number of entries.
-                save.Write(marketOrders.Count);
-                foreach (MarketOrder order in marketOrders.Values)
-                {
-                    order.save(save);
-                }
-            }
-        }
-
-        public static void loadMarketOrders(BinaryReader load)
-        {
-            lock (marketOrders)
-            {
-                // Load the expire time.
-                int entries = load.ReadInt32();
-                for (int i = 0; i < entries; i++)
-                {
-                    int regionID = load.ReadInt32();
-                    marketRegionExpire[regionID] = new DateTime(load.ReadInt64());
-                }
-                // Load the number of entries.
-                entries = load.ReadInt32();
-                for (int i = 0; i < entries; i++)
-                {
-                    MarketOrder order = new MarketOrder(load);
-                    addOrder(order);
-                }
-            }
         }
 
         /// <summary>
@@ -184,7 +274,7 @@ namespace EVE_All_API.ESI
         /// </summary>
         /// <param name="order">The order to add</param>
         /// <remarks>Must be called with marketOrders locked.</remarks>
-        private static void addOrder(MarketOrder order)
+        private static void AddOrder(MarketOrder order)
         {
             marketOrders[order.order_id] = order;
             if (!typeOrders.ContainsKey(order.type_id))
@@ -197,43 +287,6 @@ namespace EVE_All_API.ESI
                 regionOrders[order.regionID] = new List<long>();
             }
             regionOrders[order.regionID].Add(order.order_id);
-        }
-
-        public static void updateRegionMarket(int regionID)
-        {
-            // Check expire time.
-            lock(marketRegionExpire)
-            {
-                if(marketRegionExpire.ContainsKey(regionID))
-                {
-                    if(marketRegionExpire[regionID] > DateTime.Now)
-                    {
-                        return;
-                    }
-                }
-            }
-            // Data expired, load new.
-            string url = "markets/" + regionID + "/orders/";
-            string query = "&order_type=all";
-            JSON.ESIList<MarketOrder> market = JSON.getESIlist<MarketOrder>(url, query);
-            if (market.items.Count == 0)
-            {
-                // No data returned.
-                return;
-            }
-            lock (marketRegionExpire)
-            {
-                // Update expire time.
-                marketRegionExpire[regionID] = market.expires;
-            }
-            lock(marketOrders)
-            {
-                foreach (MarketOrder order in market.items)
-                {
-                    order.regionID = regionID;
-                    addOrder(order);
-                }
-            }
         }
 
         #endregion
@@ -254,7 +307,7 @@ namespace EVE_All_API.ESI
                 adjusted_price = load.ReadDouble();
                 average_price = load.ReadDouble();
             }
-            public void save(BinaryWriter save)
+            public void Save(BinaryWriter save)
             {
                 save.Write(type_id);
                 save.Write(adjusted_price);
@@ -262,10 +315,18 @@ namespace EVE_All_API.ESI
             }
         }
 
-        private static Dictionary<int, MarketValue> marketValues = new Dictionary<int, MarketValue>();
-        private static DateTime marketValuesExpires = DateTime.Now;
+        private class PricesPage : ESIList<MarketValue>
+        {
+            public PricesPage()
+            {
+                url = "markets/prices/";
+                autoUpdate = false;
+            }
+        }
+        private static PricesPage pricesPage = new PricesPage();
 
-        public static MarketValue getMarketValue(int typeID)
+        private static Dictionary<int, MarketValue> marketValues = new Dictionary<int, MarketValue>();
+        public static MarketValue GetMarketValue(int typeID)
         {
             lock (marketValues)
             {
@@ -277,59 +338,24 @@ namespace EVE_All_API.ESI
             return null;
         }
 
-        public static void saveMarketValues(BinaryWriter save)
+        public static void UpdateMarketValues()
         {
-            lock (marketValues)
+            lock (pricesPage)
             {
-                // Save the expire time.
-                save.Write(marketValuesExpires.Ticks);
-                // Save the number of entries.
-                save.Write(marketValues.Count);
-                foreach (MarketValue value in marketValues.Values)
+                JSON.JSONResponse resp = pricesPage.GetPage();
+                if (pricesPage.items.Count == 0)
                 {
-                    value.save(save);
+                    // No data returned.
+                    return;
                 }
-            }
-        }
-
-        public static void loadMarketValues(BinaryReader load)
-        {
-            lock (marketValues)
-            {
-                // Load the expire time.
-                marketValuesExpires = new DateTime(load.ReadInt64());
-                // Load the number of entries.
-                int entries = load.ReadInt32();
-                for (int i = 0; i < entries; i++)
+                lock (marketValues)
                 {
-                    MarketValue value = new MarketValue(load);
-                    marketValues[value.type_id] = value;
-                }
-            }
-        }
-
-        public static void updateMarketValues()
-        {
-            // Check expire time.
-            if (marketValuesExpires > DateTime.Now)
-            {
-                return;
-            }
-            // Data expired, load new.
-            JSON.ESIList<MarketValue> values = JSON.getESIlist<MarketValue>("markets/prices/");
-            if(values.items.Count == 0)
-            {
-                // No data returned.
-                return;
-            }
-            lock(marketValues)
-            {
-                // Update expire time.
-                marketValuesExpires = values.expires;
-                marketValues.Clear();
-                foreach(MarketValue value in values.items)
-                {
-                    marketValues[value.type_id] = value;
+                    // Update expire time.
+                    marketValues.Clear();
+                    foreach (MarketValue value in pricesPage.items)
+                    {
+                        marketValues[value.type_id] = value;
+                    }
                 }
             }
         }
@@ -337,8 +363,18 @@ namespace EVE_All_API.ESI
         #endregion
 
         #region MarketGroups
-        public class MarketGroup
+        public class MarketGroup : ESIPage
         {
+            public MarketGroup(int groupID)
+            {
+                url = "markets/groups/" + groupID + "/";
+                autoUpdate = false;
+                autoUpdateAction = new Action<Task>(_ => Refresh()); ;
+            }
+            protected void Refresh()
+            {
+                GetPage();
+            }
             public int market_group_id;
             public string name;
             public string description;
@@ -347,7 +383,7 @@ namespace EVE_All_API.ESI
         }
 
         private static Dictionary<int, MarketGroup> marketGroups = new Dictionary<int, MarketGroup>();
-        public static MarketGroup getMarketGroup(int groupID)
+        public static MarketGroup GetMarketGroup(int groupID)
         {
             lock(marketGroups)
             {
@@ -359,28 +395,25 @@ namespace EVE_All_API.ESI
             return null;
         }
 
-        public static void updateMarketGroups()
+        private static ESIList<int> groupIDs = new ESIList<int>()
         {
-            JSON.ESIList<int> groupIDs = JSON.getESIlist<int>("markets/groups/");
+            url = "markets/groups/"
+        };
+        public static void UpdateMarketGroups()
+        {
+            groupIDs.GetPage();
             if (groupIDs.items.Count > 0)
             {
-                List<MarketGroup> groups = new List<MarketGroup>();
-                foreach (int groupID in groupIDs.items)
-                {
-                    JSON.ESIItem<MarketGroup> group = JSON.getESIItem<MarketGroup>("markets/groups/" + groupID + "/");
-                    if(group != null)
-                    {
-                        groups.Add(group.item);
-                    }
-                }
-                Dictionary<int, MarketGroup> newGroups = new Dictionary<int, MarketGroup>();
-                foreach (MarketGroup group in groups)
-                {
-                    newGroups[group.market_group_id] = group;
-                }
                 lock (marketGroups)
                 {
-                    marketGroups = newGroups;
+                    foreach (int groupID in groupIDs.items)
+                    {
+                        if (!marketGroups.ContainsKey(groupID))
+                        {
+                            marketGroups[groupID] = new MarketGroup(groupID);
+                        }
+                        marketGroups[groupID].ScheduleRefresh();
+                    }
                 }
             }
         }

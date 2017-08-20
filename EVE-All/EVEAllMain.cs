@@ -59,7 +59,7 @@ namespace EVE_All
             UserData.imagePath = configPath + "/image/";
 
             // Load configuration info.
-            UserData.loadConfig(configPath + "/EVE-All.xml");
+            UserData.LoadConfig(configPath + "/EVE-All.xml");
 
             InitializeComponent();
 
@@ -146,9 +146,9 @@ namespace EVE_All
         {
             if (UserData.cachePath != null)
             {
-                Market.saveAll(UserData.cachePath + "Market.cache");
+                Market.SaveAll(UserData.cachePath + "Market.cache");
             }
-            UserData.saveConfig();
+            UserData.SaveConfig();
         }
 
         private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -160,7 +160,7 @@ namespace EVE_All
                 {
                     options.confirmSettings();
                     // Save the updated configuration to file.
-                    UserData.saveConfig();
+                    UserData.SaveConfig();
                 }
             }
 
@@ -168,7 +168,7 @@ namespace EVE_All
 
         private void loginToCharacterToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SSO.startRequest();
+            SSO.StartRequest();
         }
     }
 }

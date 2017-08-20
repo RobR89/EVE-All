@@ -10,14 +10,14 @@ namespace EVE_All_API
     public class AccessToken
     {
         private static List<AccessToken> accessTokens = new List<AccessToken>();
-        public static List<AccessToken> getAccessTokens()
+        public static List<AccessToken> GetAccessTokens()
         {
             lock (accessTokens)
             {
                 return new List<AccessToken>(accessTokens);
             }
         }
-        public static void addToken(AccessToken token)
+        public static void AddToken(AccessToken token)
         {
             if (token == null)
             {
@@ -27,11 +27,11 @@ namespace EVE_All_API
             {
                 accessTokens.Add(token);
             }
-            token.getCharacterInfo();
+            token.GetCharacterInfo();
             AccessTokenAdded?.Invoke(token);
         }
 
-        public static List<AccessToken> getTokensForCharacter(long characterID)
+        public static List<AccessToken> GetTokensForCharacter(long characterID)
         {
             List<AccessToken> tokens = new List<AccessToken>();
             lock (accessTokens)
@@ -47,7 +47,7 @@ namespace EVE_All_API
             return tokens;
         }
 
-        public static AccessToken getFirstTokenForCharacter(long characterID)
+        public static AccessToken GetFirstTokenForCharacter(long characterID)
         {
             lock (accessTokens)
             {
@@ -62,12 +62,12 @@ namespace EVE_All_API
             return null;
         }
 
-        public static AccessToken getTokenForCharacterWithScope(long characterID, string scope)
+        public static AccessToken GetTokenForCharacterWithScope(long characterID, string scope)
         {
-            List<AccessToken> tokens = getTokensForCharacter(characterID);
+            List<AccessToken> tokens = GetTokensForCharacter(characterID);
             foreach(AccessToken token in tokens)
             {
-                if(token?.hasScope(scope) == true)
+                if(token?.HasScope(scope) == true)
                 {
                     return token;
                 }
@@ -75,15 +75,17 @@ namespace EVE_All_API
             return null;
         }
 
-        public static AccessToken addToken(string access_token, string token_type, string refresh_token, long expires_in)
+        public static AccessToken AddToken(string access_token, string token_type, string refresh_token, long expires_in)
         {
-            AccessToken token = new AccessToken();
-            token.access_token = access_token;
-            token.token_type = token_type;
-            token.refresh_token = refresh_token;
-            token.expires_in = expires_in;
-            token.generated = DateTime.Now;
-            addToken(token);
+            AccessToken token = new AccessToken()
+            {
+                access_token = access_token,
+                token_type = token_type,
+                refresh_token = refresh_token,
+                expires_in = expires_in,
+                generated = DateTime.Now
+            };
+            AddToken(token);
             return token;
         }
         public delegate void AccessTokenHandler(AccessToken token);
@@ -100,7 +102,7 @@ namespace EVE_All_API
         /// Is the token expired?
         /// </summary>
         /// <returns>true if token expired.</returns>
-        public bool isExpired()
+        public bool IsExpired()
         {
             TimeSpan span = DateTime.Now - generated;
             return (span.TotalSeconds >= expires_in);
@@ -110,7 +112,7 @@ namespace EVE_All_API
         /// Refresh the token.
         /// </summary>
         /// <returns>true if successfuly refreshed.</returns>
-        public bool refresh()
+        public bool Refresh()
         {
             if (!String.IsNullOrEmpty(refresh_token))
             {
@@ -134,7 +136,7 @@ namespace EVE_All_API
         /// </summary>
         /// <param name="scope">The scope to find.</param>
         /// <returns>True if the token has the scope.</returns>
-        public bool hasScope(string scope)
+        public bool HasScope(string scope)
         {
             string[] scopes = Scopes.Split(' ');
             return Array.IndexOf(scopes, scope) > -1;
@@ -143,14 +145,14 @@ namespace EVE_All_API
         /// <summary>
         /// Get the character info from the auth server.
         /// </summary>
-        public void getCharacterInfo()
+        public void GetCharacterInfo()
         {
             string url = "https://login.eveonline.com/oauth/verify";
-            JSON.ESIResponse resp = JSON.getESIPage(url, null, this);
-            if (resp?.code == HttpStatusCode.OK)
+            JSON.JSONResponse resp = JSON.GetJSONPage(url, null, this);
+            if (resp?.httpCode == HttpStatusCode.OK)
             {
-                Pilot pilot = Pilot.getPilot(CharacterID);
                 JsonConvert.PopulateObject(resp.content, this);
+                Pilot pilot = Pilot.GetPilot(CharacterID);
                 pilot.characterSheet.name = CharacterName;
             }
         }
@@ -209,7 +211,7 @@ namespace EVE_All_API
                 JsonConvert.PopulateObject(content, this);
                 generated = DateTime.Now;
                 // Auto save the new token as refresh tokens can only be used once and we don't want to loose the new token.
-                UserData.saveConfig();
+                UserData.SaveConfig();
                 return true;
             }
             else

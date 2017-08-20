@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EVE_All_API.ESI
 {
@@ -20,35 +17,42 @@ namespace EVE_All_API.ESI
             public DateTime vulnerable_end_time;
         }
 
-        private static Dictionary<long, Structure> structureSov = new Dictionary<long, Structure>();
-        private static DateTime structureSovExpire = DateTime.Now;
-        public static Structure getStructure(long structureID)
+        private class StructuresPage : ESIList<Structure>
         {
-            lock(structureSov)
+            public StructuresPage()
             {
-                if(structureSov.ContainsKey(structureID))
+                url = "sovereignty/structures/";
+                autoUpdate = false;
+            }
+        }
+        private static StructuresPage structuresPage = new StructuresPage();
+
+        public static Structure GetStructure(long structureID)
+        {
+            lock(structuresPage)
+            {
+                foreach (Structure structure in structuresPage.items)
                 {
-                    return structureSov[structureID];
+                    if(structure.structure_id == structureID)
+                    {
+                        return structure;
+                    }
                 }
             }
             return null;
         }
 
-        public static void updateStructures()
+        public static bool UpdateStructures()
         {
-            if (structureSovExpire > DateTime.Now)
+            lock (structuresPage)
             {
-                return;
-            }
-            JSON.ESIList<Structure> sov = JSON.getESIlist<Structure>("sovereignty/structures/");
-            lock (structureSov)
-            {
-                structureSovExpire = sov.expires;
-                foreach (Structure structure in sov.items)
+                JSON.JSONResponse resp = structuresPage.GetPage();
+                if (resp.httpCode == System.Net.HttpStatusCode.OK)
                 {
-                    structureSov[structure.structure_id] = structure;
+                    return true;
                 }
             }
+            return false;
         }
         #endregion
 
@@ -61,35 +65,42 @@ namespace EVE_All_API.ESI
             public long corporation_id;
         }
 
-        private static Dictionary<int, Map> mapSov = new Dictionary<int, Map>();
-        private static DateTime mapSovExpire = DateTime.Now;
-        public static Map getMap(int systemID)
+        private class MapsPage : ESIList<Map>
         {
-            lock(mapSov)
+            public MapsPage()
             {
-                if(mapSov.ContainsKey(systemID))
+                url = "sovereignty/map/";
+                autoUpdate = false;
+            }
+        }
+        private static MapsPage mapsPage = new MapsPage();
+
+        public static Map GetMap(int systemID)
+        {
+            lock(mapsPage)
+            {
+                foreach (Map map in mapsPage.items)
                 {
-                    return mapSov[systemID];
+                    if(map.system_id == systemID)
+                    {
+                        return map;
+                    }
                 }
             }
             return null;
         }
 
-        public static void updateMap()
+        public static bool UpdateMap()
         {
-            if (mapSovExpire > DateTime.Now)
+            lock (mapsPage)
             {
-                return;
-            }
-            JSON.ESIList<Map> sov = JSON.getESIlist<Map>("sovereignty/map/");
-            lock (mapSov)
-            {
-                mapSovExpire = sov.expires;
-                foreach (Map map in sov.items)
+                JSON.JSONResponse resp = mapsPage.GetPage();
+                if (resp.httpCode == System.Net.HttpStatusCode.OK)
                 {
-                    mapSov[map.system_id] = map;
+                    return true;
                 }
             }
+            return false;
         }
         #endregion
     }

@@ -156,6 +156,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ESI\ESIPage.cs" />
     <Compile Include="ESI\Market.cs" />
     <Compile Include="ESI\Sovereignty.cs" />
     <Compile Include="GameState\Alliance.cs" />

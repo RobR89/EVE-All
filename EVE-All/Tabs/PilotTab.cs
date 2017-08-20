@@ -23,25 +23,25 @@ namespace EVE_All.Tabs
             InitializeComponent();
             Dock = DockStyle.Fill;
             // Update pilot info.
-            pilot.esiUpdate += Pilot_esiUpdate;
-            requestUpdate();
+            pilot.EsiUpdate += Pilot_EsiUpdate;
+            RequestUpdate();
         }
 
-        private void Pilot_esiUpdate(Pilot.PilotEvent e)
+        private void Pilot_EsiUpdate(Pilot.PilotEvent e)
         {
             if(InvokeRequired)
             {
                 // Insure this is called in a GUI friendly thread.
-                Invoke((MethodInvoker)delegate{ Pilot_esiUpdate(e); });
+                Invoke((MethodInvoker)delegate{ Pilot_EsiUpdate(e); });
                 return;
             }
             switch (e)
             {
                 case Pilot.PilotEvent.CharacterSheetUpdate:
-                    updateCharacterSheet();
+                    UpdateCharacterSheet();
                     break;
                 case Pilot.PilotEvent.AttributesUpdate:
-                    updateAttributes();
+                    UpdateAttributes();
                     break;
                 case Pilot.PilotEvent.ImageLoaded:
                     // Get pilot image.
@@ -50,12 +50,12 @@ namespace EVE_All.Tabs
             }
         }
 
-        public void requestUpdate()
+        public void RequestUpdate()
         {
             // Update pilot info.
-            new Task(pilot.loadCharacterSheet).Start();
-            new Task(pilot.loadAttributes).Start();
-            new Task(() => pilot.loadImage(128)).Start();
+            new Task(pilot.LoadCharacterSheet).Start();
+            new Task(pilot.LoadAttributes).Start();
+            new Task(() => pilot.LoadImage(128)).Start();
 
             //balanceLabel.Text = "Balance: " + pilot.balance.ToString("N") + " ISK";
             //// Update membership info.
@@ -72,7 +72,7 @@ namespace EVE_All.Tabs
             //cloneSkillPointsLabel.Text = pilot.cloneSkillPoints.ToString("N");
         }
 
-        private void updateCharacterSheet()
+        private void UpdateCharacterSheet()
         {
             nameLabel.Text = pilot.characterSheet.name;
             // TO-DO: load actual names once chrBloodlines, chrRace, and chrAncestries are loaded.
@@ -87,7 +87,7 @@ namespace EVE_All.Tabs
             securityLabel.Text = "SecurityStatus: " + pilot.characterSheet.security_status.ToString();
         }
 
-        private void updateAttributes()
+        private void UpdateAttributes()
         {
             // Update attributes.
             intelligenceLabel.Text = "Intelligence: " + pilot.characterAttributes.intelligence.ToString();

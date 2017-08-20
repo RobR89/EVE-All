@@ -9,92 +9,18 @@ namespace EVE_All_API
     public class JSON
     {
 
-        public class ESIList<T>
-        {
-            public DateTime expires = DateTime.Now;
-            public List<T> items = new List<T>();
-        }
-
-        /// <summary>
-        /// Get a List of items from the EVE Swagger interface.
-        /// </summary>
-        /// <typeparam name="T">The object type to be filled.</typeparam>
-        /// <param name="url">The url to fetch.</param>
-        /// <param name="query">The query parameters.</param>
-        /// <param name="token">The access token to use, or null if no token is to be used.</param>
-        /// <returns>The List of items.</returns>
-        public static ESIList<T> getESIlist<T>(string url, string query = null, AccessToken token = null)
-        {
-            int pageNum = 1;
-            int pageCount = 1;
-            List<T> found = new List<T>();
-            ESIList<T> result = new ESIList<T>();
-            do
-            {
-                found.Clear();
-                // Create page reference
-                string pageURL = url;
-                pageURL = url + "&page=" + pageNum.ToString();
-                JSON.ESIResponse resp = JSON.getESIPage(pageURL, query, token);
-                if (resp?.code == System.Net.HttpStatusCode.OK)
-                {
-                    JsonConvert.PopulateObject(resp.content, found);
-                    result.items.AddRange(found);
-                    result.expires = resp.expires;
-                    pageCount = resp.pages;
-                }
-                else
-                {
-                    // There was an error.  The response content may contain a JSON formated error string.
-                    return result;
-                }
-                pageNum++;
-            } while (found.Count > 0 && pageNum <= pageCount);
-            return result;
-        }
-
-        public class ESIItem<T> where T : new()
-        {
-            public DateTime expires = DateTime.Now;
-            public T item = new T();
-        }
-
-        /// <summary>
-        /// Get a single item from the EVE Swagger Interface.
-        /// </summary>
-        /// <typeparam name="T">The Item Type to get.</typeparam>
-        /// <param name="url">The URL to get the item from.</param>
-        /// <param name="query">The query parameters.</param>
-        /// <param name="token">The access token to use, or null if no token is to be used.</param>
-        /// <returns>The Item information.</returns>
-        public static ESIItem<T> getESIItem<T>(string url, string query = null, AccessToken token = null) where T : new()
-        {
-            ESIItem<T> result = new ESIItem<T>();
-            JSON.ESIResponse resp = JSON.getESIPage(url, query, token);
-            if (resp?.code == System.Net.HttpStatusCode.OK)
-            {
-                //result.item = new T();
-                JsonConvert.PopulateObject(resp.content, result.item);
-                result.expires = resp.expires;
-                return result;
-            }
-            // There was an error.  The response content may contain a JSON formated error string.
-            return null;
-        }
-
-        public class ESIResponse
+        public class JSONResponse
         {
             public string content = null;
             // Http header info.
-            // Dates are converted to local time.
             public DateTime date;
             public DateTime expires;
             public int pages = 0;
-            public HttpStatusCode code;
+            public HttpStatusCode httpCode;
         }
 
         /// <summary>
-        /// Load a JSON page.  If the url does not begin with http the json server URL is prepended.
+        /// Load a JSON page.  If the url does not begin with http the ESI server URL is prepended.
         /// </summary>
         /// <param name="url">The url to fetch.</param>
         /// <param name="query">The query parameters.</param>
@@ -103,8 +29,18 @@ namespace EVE_All_API
         /// <remarks>path should not begin with / or \</remarks>
         /// <remarks>path should end with /</remarks>
         /// <remarks>query should begin with &</remarks>
-        public static ESIResponse getESIPage(string url, string query, AccessToken token = null)
+        public static JSONResponse GetJSONPage(string url, Dictionary<string, string> query, AccessToken token = null)
         {
+            Dictionary<string, string> _query = query;
+            if (_query == null)
+            {
+                _query = new Dictionary<string, string>();
+            }
+            else
+            {
+                _query = new Dictionary<string, string>(query);
+            }
+            _query["datasource"] = UserData.esiDatasource;
             string useURL = url.Trim();
             if (!url.StartsWith("http"))
             {
@@ -118,25 +54,27 @@ namespace EVE_All_API
                 {
                     useURL = useURL + "/";
                 }
-                useURL = UserData.esiURL + useURL + "?datasource=" + UserData.esiDatasource;
+                useURL = UserData.esiURL + useURL;
             }
-            if (query?.Length > 0)
+            string pageQuery = "";
+            if (_query?.Count > 0)
             {
                 // Make sure query starts with &
-                if (!query.StartsWith("&"))
+                string delim = "?";
+                foreach(KeyValuePair<string, string> param in _query)
                 {
-                    useURL += "&";
+                    pageQuery += delim + param.Key + "=" + param.Value;
+                    delim = "&";
                 }
-                useURL += query;
             }
-            Uri uri = new Uri(useURL + query);
+            Uri uri = new Uri(useURL + pageQuery);
             HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(uri);
             request.Method = WebRequestMethods.Http.Get;
             if(token != null)
             {
-                if(token.isExpired())
+                if(token.IsExpired())
                 {
-                    if(!token.refresh())
+                    if(!token.Refresh())
                     {
                         // Token refresh failed.
                         return null;
@@ -146,7 +84,7 @@ namespace EVE_All_API
                 request.Headers.Add("Authorization", token.token_type + " " + token.access_token);
             }
             HttpWebResponse response = null;
-            ESIResponse resp = new ESIResponse();
+            JSONResponse resp = new JSONResponse();
             try
             {
                 response = (HttpWebResponse)request.GetResponse();
@@ -155,7 +93,7 @@ namespace EVE_All_API
             {
                 response = (HttpWebResponse)e.Response;
             }
-            resp.code = response.StatusCode;
+            resp.httpCode = response.StatusCode;
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 resp.date = DateTime.Parse(response.Headers.Get("date"));

@@ -20,14 +20,14 @@ namespace EVE_All.Tabs
             InitializeComponent();
 
             // Add characters.
-            List<AccessToken> tokens = AccessToken.getAccessTokens();
+            List<AccessToken> tokens = AccessToken.GetAccessTokens();
             foreach (AccessToken token in tokens)
             {
                 if(pilotTabReference.ContainsKey(token.CharacterID))
                 {
                     continue;
                 }
-                Pilot pilot = Pilot.getPilot(token.CharacterID);
+                Pilot pilot = Pilot.GetPilot(token.CharacterID);
                 // Create the pilot tab.
                 PilotTab pTab = new PilotTab(pilot);
                 // Create the tab container.
@@ -56,7 +56,7 @@ namespace EVE_All.Tabs
             {
                 return;
             }
-            Pilot pilot = Pilot.getPilot(token.CharacterID);
+            Pilot pilot = Pilot.GetPilot(token.CharacterID);
             // Create the pilot tab.
             PilotTab pTab = new PilotTab(pilot);
             // Create the tab container.

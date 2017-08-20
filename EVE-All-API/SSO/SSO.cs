@@ -22,7 +22,7 @@ namespace EVE_All_API
         /// <summary>
         /// Start a new Login request, starting a new listener if neccissary.
         /// </summary>
-        public static void startRequest()
+        public static void StartRequest()
         {
             // Make sure there is a listener running.
             if (_redirect_uri != UserData.sso_RedirectURI)
@@ -76,7 +76,7 @@ namespace EVE_All_API
                 // Listen for responses.
                 try
                 {
-                    ThreadPool.QueueUserWorkItem(incomming, listener.GetContext());
+                    ThreadPool.QueueUserWorkItem(Incomming, listener.GetContext());
                 }
                 catch (HttpListenerException ex)
                 {
@@ -93,7 +93,7 @@ namespace EVE_All_API
             worker = null;
         }
 
-        private static void incomming(object o)
+        private static void Incomming(object o)
         {
             // Handle incomming response.
             HttpListenerContext context = o as HttpListenerContext;
@@ -146,7 +146,7 @@ namespace EVE_All_API
             AccessToken token = new AccessToken();
             if (token.FetchToken(code))
             {
-                AccessToken.addToken(token);
+                AccessToken.AddToken(token);
             }
         }
 
@@ -155,13 +155,13 @@ namespace EVE_All_API
         /// </summary>
         /// <param name="doc">The document to save the tokens in.</param>
         /// <returns>The node with the save state.</returns>
-        public static XmlElement getTokenNode(XmlDocument doc)
+        public static XmlElement GetTokenNode(XmlDocument doc)
         {
             XmlElement rowset = doc.CreateElement("rowset");
             XmlAttribute attribute = doc.CreateAttribute("name");
             attribute.Value = "SSO_Tokens";
             rowset.Attributes.Append(attribute);
-            foreach (AccessToken token in AccessToken.getAccessTokens())
+            foreach (AccessToken token in AccessToken.GetAccessTokens())
             {
                 if (String.IsNullOrEmpty(token.refresh_token))
                 {
@@ -184,7 +184,7 @@ namespace EVE_All_API
         /// Load tokens from the saved XML node.
         /// </summary>
         /// <param name="rowset">The XML node to load the tokens from.</param>
-        public static void loadTokens(XmlNode rowset)
+        public static void LoadTokens(XmlNode rowset)
         {
             List<Dictionary<string, string>> rows;
             string[] columns = { "access_token", "token_type", "refresh_token", "expires_in", "generated" };
@@ -192,13 +192,15 @@ namespace EVE_All_API
             {
                 foreach (Dictionary<string, string> row in rows)
                 {
-                    AccessToken token = new AccessToken();
-                    token.access_token = row["access_token"];
-                    token.token_type = row["token_type"];
-                    token.refresh_token = row["refresh_token"];
-                    token.expires_in = long.Parse(row["expires_in"]);
-                    token.generated = new DateTime(long.Parse(row["generated"]));
-                    AccessToken.addToken(token);
+                    AccessToken token = new AccessToken()
+                    {
+                        access_token = row["access_token"],
+                        token_type = row["token_type"],
+                        refresh_token = row["refresh_token"],
+                        expires_in = long.Parse(row["expires_in"]),
+                        generated = new DateTime(long.Parse(row["generated"]))
+                    };
+                    AccessToken.AddToken(token);
                 }
             }
         }

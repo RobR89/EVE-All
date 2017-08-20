@@ -78,13 +78,13 @@ namespace EVE_All_API
         /// Save the config to the last specified config file.
         /// </summary>
         /// <returns>True if successful.</returns>
-        public static bool saveConfig()
+        public static bool SaveConfig()
         {
             if(configFile == null || configFile.Length == 0)
             {
                 return false;
             }
-            return saveConfig(configFile);
+            return SaveConfig(configFile);
         }
 
         private static object onlyOne = new object();
@@ -93,14 +93,14 @@ namespace EVE_All_API
         /// </summary>
         /// <param name="file">The file to save to.</param>
         /// <returns>True if successful.</returns>
-        public static bool saveConfig(string file)
+        public static bool SaveConfig(string file)
         {
             // Only allow one save at a time.
             lock (onlyOne)
             {
                 // Create the document.
                 XmlDocument doc = new XmlDocument();
-                doc.AppendChild(getSave(doc));
+                doc.AppendChild(GetSave(doc));
                 // Save document to file.
                 doc.Save(file);
                 return true;
@@ -112,7 +112,7 @@ namespace EVE_All_API
         /// Load the configuration from file.
         /// </summary>
         /// <param name="file">The file to load.</param>
-        public static void loadConfig(string file)
+        public static void LoadConfig(string file)
         {
             configFile = file;
             XmlDocument doc = new XmlDocument();
@@ -130,7 +130,7 @@ namespace EVE_All_API
             {
                 return;
             }
-            loadConfig(root);
+            LoadConfig(root);
         }
 
         /// <summary>
@@ -138,12 +138,12 @@ namespace EVE_All_API
         /// </summary>
         /// <param name="doc">The document to create the node for.</param>
         /// <returns>The save node.</returns>
-        public static XmlNode getSave(XmlDocument doc)
+        public static XmlNode GetSave(XmlDocument doc)
         {
             // Create the config root.
             XmlNode root = doc.CreateElement("EVE-All-API");
             // Save SSO tokens.
-            XmlElement tokens = SSO.getTokenNode(doc);
+            XmlElement tokens = SSO.GetTokenNode(doc);
             root.AppendChild(tokens);
             // Save language.
             xmlUtils.newElement(root, "language", language);
@@ -204,7 +204,7 @@ namespace EVE_All_API
         /// </summary>
         /// <param name="root">The element to load from.</param>
         /// <returns>True if successful.</returns>
-        public static bool loadConfig(XmlElement root)
+        public static bool LoadConfig(XmlElement root)
         {
             XmlNode tokenNode = null;
             foreach (XmlNode node in root.ChildNodes)
@@ -265,7 +265,7 @@ namespace EVE_All_API
             // Now we can load the tokens.
             if(tokenNode != null)
             {
-                SSO.loadTokens(tokenNode);
+                SSO.LoadTokens(tokenNode);
             }
             return true;
         }

@@ -1,19 +1,16 @@
-﻿using EVE_All_API.StaticData;
+﻿using EVE_All_API.ESI;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
 
 namespace EVE_All_API
 {
     public class Pilot
     {
         private static Dictionary<long, Pilot> pilots = new Dictionary<long, Pilot>();
-        public static Pilot getPilot(long _characterID)
+        public static Pilot GetPilot(long _characterID)
         {
             lock (pilots)
             {
@@ -30,12 +27,13 @@ namespace EVE_All_API
 
         public enum PilotEvent { CharacterSheetUpdate, AttributesUpdate, ImageLoaded };
         public delegate void PilotHandler(PilotEvent e);
-        public event PilotHandler esiUpdate;
-        private void issueUpdate(PilotEvent e)
+        public event PilotHandler EsiUpdate;
+        private void IssueUpdate(PilotEvent e)
         {
-            esiUpdate?.Invoke(e);
+            EsiUpdate?.Invoke(e);
         }
 
+#region Depreciated
         public class JumpClone
         {
             public long jumpCloneID;
@@ -51,40 +49,6 @@ namespace EVE_All_API
             public int level;
             public int skillPoints;
         }
-
-        public readonly long characterID;
-        public Image pilotImage = null;
-        public readonly CharacterSheetPage characterSheet = new CharacterSheetPage();
-        public readonly CharacterAttributesPage characterAttributes = new CharacterAttributesPage();
-
-        public class CharacterSheetPage
-        {
-            // From characterSheet
-            public string name;
-            public long corporation_ID;
-            public DateTime birthday;
-            public string gender;
-            public int race_id;
-            public int bloodLine_id;
-            public int ancestry_id;
-            public string description;
-            public double security_status;
-            public DateTime expire;
-        }
-        public class CharacterAttributesPage
-        {
-            // From character/$/attributes/
-            public int intelligence;
-            public int memory;
-            public int charisma;
-            public int perception;
-            public int willpower;
-            public int bonus_remaps;
-            public DateTime last_remap_date;
-            public DateTime accrued_remap_cooldown_date;
-            public DateTime expire;
-        }
-
         public long allianceID;
         public long factionID;
         public long homeStationID;
@@ -107,6 +71,12 @@ namespace EVE_All_API
         public Dictionary<long, string> corporationRolesAtOther = new Dictionary<long, string>();
         public Dictionary<long, string> corporationTitles = new Dictionary<long, string>();
         public List<int> certificates = new List<int>();
+#endregion
+
+        public readonly long characterID;
+        public Image pilotImage = null;
+        public readonly CharacterSheetPage characterSheet = new CharacterSheetPage();
+        public readonly CharacterAttributesPage characterAttributes = new CharacterAttributesPage();
 
         private Pilot(long _characterID)
         {
@@ -115,49 +85,73 @@ namespace EVE_All_API
             {
                 pilots[_characterID] = this;
             }
-            AccessToken token = AccessToken.getFirstTokenForCharacter(characterID);
+            // Attempt to find a name.
+            AccessToken token = AccessToken.GetFirstTokenForCharacter(characterID);
             characterSheet.name = token?.CharacterName;
+
+            // Set up ESI pages.
+            // Character Sheet
+            characterSheet.url = "characters/" + characterID.ToString() + "/";
+            characterSheet.autoUpdateAction = new Action<Task>( _ => LoadCharacterSheet());
+            // Attributes.
+            characterAttributes.url = "characters/" + characterID.ToString() + "/attributes/";
+            characterAttributes.autoUpdateAction = new Action<Task>(_ => LoadAttributes());
         }
 
-        public void loadImage(int size)
+        public class CharacterSheetPage : ESIPage
+        {
+            // From characterSheet/$character_ID
+            public string name;
+            public long corporation_ID;
+            public DateTime birthday;
+            public string gender;
+            public int race_id;
+            public int bloodLine_id;
+            public int ancestry_id;
+            public string description;
+            public double security_status;
+        }
+
+        public class CharacterAttributesPage : ESIPage
+        {
+            public  CharacterAttributesPage()
+            {
+                scope = "esi-skills.read_skills.v1";
+            }
+            // From character/$character_ID/attributes/
+            public int intelligence;
+            public int memory;
+            public int charisma;
+            public int perception;
+            public int willpower;
+            public int bonus_remaps;
+            public DateTime last_remap_date;
+            public DateTime accrued_remap_cooldown_date;
+        }
+
+        public void LoadImage(int size)
         {
             pilotImage = ImageManager.getCharacterImage(characterID, size);
-            issueUpdate(PilotEvent.ImageLoaded);
+            IssueUpdate(PilotEvent.ImageLoaded);
         }
 
-        public void loadCharacterSheet()
+        public void LoadCharacterSheet()
         {
-            if(DateTime.Now < characterSheet.expire)
+            JSON.JSONResponse resp = characterSheet.GetPage();
+            if (resp?.httpCode == System.Net.HttpStatusCode.OK)
             {
-                // Page not expired.
-                return;
-            }
-            string url = "characters/" + characterID.ToString() + "/";
-            JSON.ESIResponse resp = JSON.getESIPage(url, null, null);
-            if (resp?.code == System.Net.HttpStatusCode.OK)
-            {
-                JsonConvert.PopulateObject(resp.content, characterSheet);
-                characterSheet.expire = resp.expires;
-                issueUpdate(PilotEvent.CharacterSheetUpdate);
+                IssueUpdate(PilotEvent.CharacterSheetUpdate);
             }
         }
 
-        public void loadAttributes()
+        public void LoadAttributes()
         {
-            if (DateTime.Now < characterAttributes.expire)
+            JSON.JSONResponse resp = characterAttributes.GetPage(characterID);
+            if (resp?.httpCode == System.Net.HttpStatusCode.OK)
             {
-                // Page not expired.
-                return;
-            }
-            AccessToken token = AccessToken.getTokenForCharacterWithScope(characterID, "esi-skills.read_skills.v1");
-            string url = "characters/" + characterID.ToString() + "/attributes/";
-            JSON.ESIResponse resp = JSON.getESIPage(url, null, token);
-            if (resp?.code == System.Net.HttpStatusCode.OK)
-            {
-                JsonConvert.PopulateObject(resp.content, characterAttributes);
-                characterAttributes.expire = resp.expires;
-                issueUpdate(PilotEvent.AttributesUpdate);
+                IssueUpdate(PilotEvent.AttributesUpdate);
             }
         }
+
     }
 }

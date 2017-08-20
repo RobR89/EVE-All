@@ -6,17 +6,18 @@ namespace EVE_All
 {
     public class Tests
     {
-        //Market.updateMarketGroups();
-        //Market.updateMarketValues();
-        //Market.updateRegionMarket(999);
-        //Market.updateRegionMarket(10000030);
-        //List<long> orderIDs = Market.getOrdersForTypeAndRegion(34, 10000030);
-        //Market.MarketEntry order = Market.getOrder(orderIDs[0]);
-        //Sovereignty.updateStructures();
-        //Sovereignty.Structure str = Sovereignty.getStructure(1022679654375);
-        //Sovereignty.updateMap();
-        //Sovereignty.Map map = Sovereignty.getMap(30000721);
-
+        /*
+            Market.UpdateMarketGroups();
+            Market.UpdateMarketValues();
+            //Market.UpdateRegionMarket(999);
+            Market.UpdateRegionMarket(10000030);
+            List<long> orderIDs = Market.GetOrdersForTypeAndRegion(34, 10000030);
+            Market.MarketOrder order = Market.GetOrder(orderIDs[0]);
+            Sovereignty.UpdateStructures();
+            Sovereignty.Structure str = Sovereignty.GetStructure(1035629924);
+            Sovereignty.UpdateMap();
+            Sovereignty.Map map = Sovereignty.GetMap(30000721);
+        */
         public static void pathTest()
         {
             // Will only work after loading successful.
