@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
+using static EVE_All_API.YamlUtils;
 
 namespace EVE_All_API.StaticData
 {
-    public class EveUnit
+    public class EveUnit : YamlSequencePage<EveUnit>
     {
         private static Dictionary<int, EveUnit> units = new Dictionary<int, EveUnit>();
-        public static EveUnit getUnit(int _unitID)
+        public static EveUnit GetUnit(int _unitID)
         {
             if (units.ContainsKey(_unitID))
             {
@@ -24,7 +22,7 @@ namespace EVE_All_API.StaticData
         public readonly string displayName;
         public readonly string description;
 
-        private EveUnit(YamlNode node)
+        public EveUnit(YamlNode node)
         {
             YamlMappingNode mapping = (YamlMappingNode)node;
             foreach (var entry in mapping.Children)
@@ -49,21 +47,7 @@ namespace EVE_All_API.StaticData
                         break;
                 }
             }
-        }
-
-        public static bool loadYAML(YamlStream yaml)
-        {
-            if (yaml == null)
-            {
-                return false;
-            }
-            YamlSequenceNode mapping = (YamlSequenceNode)yaml.Documents[0].RootNode;
-            foreach (YamlNode entry in mapping.Children)
-            {
-                EveUnit unit = new EveUnit(entry);
-                units[unit.unitID] = unit;
-            }
-            return true;
+            units[unitID] = this;
         }
 
     }

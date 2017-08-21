@@ -20,7 +20,7 @@ namespace EVE_All_API.StaticData
             z = _z;
         }
 
-        public static Location parseLocation(YamlNode node)
+        public static Location ParseLocation(YamlNode node)
         {
             if (node.NodeType == YamlNodeType.Sequence)
             {

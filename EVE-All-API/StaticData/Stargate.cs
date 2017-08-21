@@ -10,7 +10,7 @@ namespace EVE_All_API.StaticData
     public class Stargate
     {
         private static Dictionary<int, Stargate> stargates = new Dictionary<int, Stargate>();
-        public static Stargate getStargate(int _gateID)
+        public static Stargate GetStargate(int _gateID)
         {
             lock(stargates)
             {
@@ -45,7 +45,7 @@ namespace EVE_All_API.StaticData
                         typeID = Int32.Parse(entry.Value.ToString());
                         break;
                     case "position":
-                        position = Location.parseLocation(entry.Value);
+                        position = Location.ParseLocation(entry.Value);
                         break;
                     default:
                         System.Diagnostics.Debug.WriteLine("Stargate unknown value:" + entry.Key + " = " + entry.Value);
@@ -54,7 +54,7 @@ namespace EVE_All_API.StaticData
             }
         }
 
-        public static List<int> loadYAML(YamlNode yaml, int _solarSystemID)
+        public static List<int> LoadYAML(YamlNode yaml, int _solarSystemID)
         {
             if (yaml == null)
             {

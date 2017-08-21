@@ -30,7 +30,7 @@ namespace EVE_All_API.StaticData
                 switch (paramName)
                 {
                     case "bonusText":
-                        bonusText = YamlUtils.getLanguageString(YamlUtils.getLanguageStrings(entry.Value), UserData.language);
+                        bonusText = YamlUtils.GetLanguageString(YamlUtils.GetLanguageStrings(entry.Value), UserData.language);
                         break;
                     case "importance":
                         importance = Int32.Parse(entry.Value.ToString());
@@ -51,7 +51,7 @@ namespace EVE_All_API.StaticData
             }
         }
 
-        public static List<ShipBonus> loadBonusList(YamlNode node)
+        public static List<ShipBonus> LoadBonusList(YamlNode node)
         {
             List<ShipBonus> bonuses = new List<ShipBonus>();
             YamlSequenceNode seq = (YamlSequenceNode)node;
@@ -62,14 +62,14 @@ namespace EVE_All_API.StaticData
             return bonuses;
         }
 
-        public static Dictionary<int, List<ShipBonus>> loadBonusMap(YamlNode node)
+        public static Dictionary<int, List<ShipBonus>> LoadBonusMap(YamlNode node)
         {
             Dictionary<int, List<ShipBonus>> bonuses = new Dictionary<int, List<ShipBonus>>();
             YamlMappingNode typeMapping = (YamlMappingNode)node;
             foreach (var typeEntry in typeMapping.Children)
             {
                 int typeID = Int32.Parse(typeEntry.Key.ToString());
-                bonuses[typeID] = ShipBonus.loadBonusList(typeEntry.Value);
+                bonuses[typeID] = ShipBonus.LoadBonusList(typeEntry.Value);
             }
             return bonuses;
         }

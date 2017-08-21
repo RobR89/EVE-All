@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
+using static EVE_All_API.YamlUtils;
 
 namespace EVE_All_API.StaticData
 {
-    public class InvGroup
+    public class InvGroup : YamlMappingPage<InvGroup>
     {
         private static Dictionary<int, InvGroup> groups = new Dictionary<int, InvGroup>();
-        public static InvGroup getGroup(int _groupID)
+        public static InvGroup GetGroup(int _groupID)
         {
             if (groups.ContainsKey(_groupID))
             {
@@ -29,9 +27,9 @@ namespace EVE_All_API.StaticData
         public readonly bool fittableNonSingleton;
         public readonly bool useBasePrice;
 
-        private InvGroup(int _groupID, YamlNode node)
+        public InvGroup(YamlNode key, YamlNode node)
         {
-            groupID = _groupID;
+            groupID = Int32.Parse(key.ToString());
             YamlMappingNode mapping = (YamlMappingNode)node;
             foreach (var entry in mapping.Children)
             {
@@ -39,7 +37,7 @@ namespace EVE_All_API.StaticData
                 switch (paramName)
                 {
                     case "name":
-                        name = YamlUtils.getLanguageString(YamlUtils.getLanguageStrings(entry.Value), UserData.language);
+                        name = YamlUtils.GetLanguageString(YamlUtils.GetLanguageStrings(entry.Value), UserData.language);
                         break;
                     case "iconID":
                         iconID = Int32.Parse(entry.Value.ToString());
@@ -67,22 +65,7 @@ namespace EVE_All_API.StaticData
                         break;
                 }
             }
-        }
-
-        public static bool loadYAML(YamlStream yaml)
-        {
-            if (yaml == null)
-            {
-                return false;
-            }
-            YamlMappingNode mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
-            foreach (var entry in mapping.Children)
-            {
-                int groupID = Int32.Parse(entry.Key.ToString());
-                InvGroup group = new InvGroup(groupID, entry.Value);
-                groups[groupID] = group;
-            }
-            return true;
+            groups[groupID] = this;
         }
 
     }

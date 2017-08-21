@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
+using static EVE_All_API.YamlUtils;
 
 namespace EVE_All_API.StaticData
 {
-    public class InvMarketGroup
+    public class InvMarketGroup : YamlSequencePage<InvMarketGroup>
     {
         private static Dictionary<int, InvMarketGroup> marketGroups = new Dictionary<int, InvMarketGroup>();
-        public static InvMarketGroup getMarketGroup(int _marketGroupID)
+        public static InvMarketGroup GetMarketGroup(int _marketGroupID)
         {
             if (marketGroups.ContainsKey(_marketGroupID))
             {
@@ -18,12 +16,12 @@ namespace EVE_All_API.StaticData
             }
             return null;
         }
-        public static List<InvMarketGroup> getRootGroups()
+        public static List<InvMarketGroup> GetRootGroups()
         {
-            return getGroupChildren(0);
+            return GetGroupChildren(0);
         }
 
-        public static List<InvMarketGroup> getGroupChildren(int _marketGroupID)
+        public static List<InvMarketGroup> GetGroupChildren(int _marketGroupID)
         {
             List<InvMarketGroup> foundGroups = new List<InvMarketGroup>();
             foreach (InvMarketGroup group in marketGroups.Values)
@@ -43,7 +41,7 @@ namespace EVE_All_API.StaticData
         public readonly int iconID;
         public readonly int parentGroupID;
 
-        private InvMarketGroup(YamlNode node)
+        public InvMarketGroup(YamlNode node)
         {
             YamlMappingNode mapping = (YamlMappingNode)node;
             foreach (var entry in mapping.Children)
@@ -74,21 +72,7 @@ namespace EVE_All_API.StaticData
                         break;
                 }
             }
-        }
-
-        public static bool loadYAML(YamlStream yaml)
-        {
-            if (yaml == null)
-            {
-                return false;
-            }
-            YamlSequenceNode mapping = (YamlSequenceNode)yaml.Documents[0].RootNode;
-            foreach (YamlNode entry in mapping.Children)
-            {
-                InvMarketGroup group = new InvMarketGroup(entry);
-                marketGroups[group.marketGroupID] = group;
-            }
-            return true;
+            marketGroups[marketGroupID] = this;
         }
 
     }

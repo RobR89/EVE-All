@@ -28,7 +28,7 @@ namespace EVE_All_API.StaticData
                         itemID = Int32.Parse(entry.Value.ToString());
                         break;
                     case "position":
-                        position = Location.parseLocation(entry.Value);
+                        position = Location.ParseLocation(entry.Value);
                         break;
                     case "typeID":
                         typeID = Int32.Parse(entry.Value.ToString());

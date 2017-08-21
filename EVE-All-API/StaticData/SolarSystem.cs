@@ -8,7 +8,7 @@ namespace EVE_All_API.StaticData
     public class SolarSystem
     {
         private static Dictionary<int, SolarSystem> solarSystems = new Dictionary<int, SolarSystem>();
-        public static SolarSystem getSystem(int _solarSystemID)
+        public static SolarSystem GetSystem(int _solarSystemID)
         {
             lock (solarSystems)
             {
@@ -96,13 +96,13 @@ namespace EVE_All_API.StaticData
                         sunTypeID = Int32.Parse(entry.Value.ToString());
                         break;
                     case "center":
-                        center = Location.parseLocation(entry.Value);
+                        center = Location.ParseLocation(entry.Value);
                         break;
                     case "max":
-                        max = Location.parseLocation(entry.Value);
+                        max = Location.ParseLocation(entry.Value);
                         break;
                     case "min":
-                        min = Location.parseLocation(entry.Value);
+                        min = Location.ParseLocation(entry.Value);
                         break;
                     case "wormholeClassID":
                         wormholeClassID = Int32.Parse(entry.Value.ToString());
@@ -140,7 +140,7 @@ namespace EVE_All_API.StaticData
                         visualEffect = entry.Value.ToString();
                         break;
                     case "disallowedAnchorGroups":
-                        disallowedAnchorGroups = YamlUtils.loadIntList(entry.Value);
+                        disallowedAnchorGroups = YamlUtils.LoadIntList(entry.Value);
                         break;
                     default:
                         System.Diagnostics.Debug.WriteLine("SolarSystem unknown value:" + entry.Key + " = " + entry.Value);
@@ -150,11 +150,11 @@ namespace EVE_All_API.StaticData
             // Parse these here so we can know we have the solarSystemID.
             if (gateNode != null)
             {
-                stargates = Stargate.loadYAML(gateNode, solarSystemID);
+                stargates = Stargate.LoadYAML(gateNode, solarSystemID);
             }
             if (planetNode != null)
             {
-                planets = OrbitalBody.loadYAML(planetNode, solarSystemID);
+                planets = OrbitalBody.LoadYAML(planetNode, solarSystemID);
             }
             if (starNode != null)
             {
@@ -166,7 +166,7 @@ namespace EVE_All_API.StaticData
             }
         }
 
-        public static bool loadYAML(YamlStream yaml)
+        public static bool LoadYAML(YamlStream yaml)
         {
             if (yaml == null)
             {
@@ -180,27 +180,27 @@ namespace EVE_All_API.StaticData
             return true;
         }
 
-        public bool isHighSec()
+        public bool IsHighSec()
         {
             // Security is rounded up by the half.
             return security >= 0.45;
         }
 
-        public bool isLowSec()
+        public bool IsLowSec()
         {
             // Security is rounded up by the half.
-            return security >= 0.05 && !isHighSec();
+            return security >= 0.05 && !IsHighSec();
         }
 
-        public bool isNULLSec()
+        public bool IsNULLSec()
         {
-            return !isLowSec() && !isHighSec();
+            return !IsLowSec() && !IsHighSec();
         }
 
         //----------------------------------------------------------------------
         // Path finding
         private static Dictionary<int, List<int>> systemDestinations = new Dictionary<int, List<int>>();
-        private static bool generateDestinations()
+        private static bool GenerateDestinations()
         {
             // Prevent multiple initializations.
             lock (systemDestinations)
@@ -220,15 +220,15 @@ namespace EVE_All_API.StaticData
                         foreach (int gateID in system.stargates)
                         {
                             // Get the stargate.
-                            Stargate gate = Stargate.getStargate(gateID);
+                            Stargate gate = Stargate.GetStargate(gateID);
                             if (gate != null)
                             {
                                 // Get the destination gate.
-                                gate = Stargate.getStargate(gate.destination);
+                                gate = Stargate.GetStargate(gate.destination);
                                 if (gate != null)
                                 {
                                     int destinationSystemID = gate.solarSystemID;
-                                    SolarSystem destinationSystem = getSystem(destinationSystemID);
+                                    SolarSystem destinationSystem = GetSystem(destinationSystemID);
                                     // If this is a high security system or we don't care.
                                     if (destinationSystem != null)
                                     {
@@ -275,12 +275,14 @@ namespace EVE_All_API.StaticData
         /// <param name="destinationID">solarSystemID of destination system.</param>
         /// <param name="highSec">True if high sec path prefered.</param>
         /// <returns>The path or null if not found.</returns>
-        public List<int> findPath(int destinationID, bool highSec = false)
+        public List<int> FindPath(int destinationID, bool highSec = false)
         {
             // Initialize the found path.
-            PathParse pp = new PathParse();
-            // Get the distance map.
-            pp.distanceMap = getDistanceMap(highSec);
+            PathParse pp = new PathParse()
+            {
+                // Get the distance map.
+                distanceMap = GetDistanceMap(highSec)
+            };
             if (!pp.distanceMap.ContainsKey(destinationID))
             {
                 // Unreachable system!
@@ -298,7 +300,7 @@ namespace EVE_All_API.StaticData
             // Add destination system.
             pp.path.Add(pp.currentSystemID);
             // Find the shortest path.
-            pp = findShortest(pp, highSec);
+            pp = FindShortest(pp, highSec);
             // Check results.
             if(pp == null)
             {
@@ -306,7 +308,7 @@ namespace EVE_All_API.StaticData
                 if (highSec)
                 {
                     // Cannot find path with current restrictions, try none.
-                    return findPath(destinationID);
+                    return FindPath(destinationID);
                 }
                 return null;
             }
@@ -315,7 +317,7 @@ namespace EVE_All_API.StaticData
             return pp.path;
         }
 
-        private PathParse findShortest(PathParse pp, bool highSec)
+        private PathParse FindShortest(PathParse pp, bool highSec)
         {
             // Find starting system.
             while (pp.distance > 0)
@@ -379,9 +381,11 @@ namespace EVE_All_API.StaticData
                     foreach (int dest in jumpDistances.Keys)
                     {
                         // Create a copy of the path.
-                        PathParse npp = new PathParse(pp);
-                        // Add this point in path.
-                        npp.currentSystemID = dest;
+                        PathParse npp = new PathParse(pp)
+                        {
+                            // Add this point in path.
+                            currentSystemID = dest
+                        };
                         if (npp.path.Contains(npp.currentSystemID))
                         {
                             // We have somehow looped back on ourself.
@@ -389,7 +393,7 @@ namespace EVE_All_API.StaticData
                         }
                         npp.path.Add(npp.currentSystemID);
                         // Find the shortest distance if this option is taken.
-                        npp = findShortest(npp, highSec);
+                        npp = FindShortest(npp, highSec);
                         if(spp == null)
                         {
                             // First successful path, keep it.
@@ -414,11 +418,11 @@ namespace EVE_All_API.StaticData
             return pp;
         }
 
-        public Dictionary<int, int> getDistanceMap(bool highSec = false)
+        public Dictionary<int, int> GetDistanceMap(bool highSec = false)
         {
             if (systemDestinations == null || systemDestinations.Count == 0)
             {
-                generateDestinations();
+                GenerateDestinations();
             }
             Dictionary<int, int> distanceMap = new Dictionary<int, int>();
             List<int> systems = new List<int>();
@@ -432,7 +436,7 @@ namespace EVE_All_API.StaticData
                 int _solarSystemID = systems[0];
                 systems.Remove(_solarSystemID);
                 // Get the solar system.
-                SolarSystem system = getSystem(_solarSystemID);
+                SolarSystem system = GetSystem(_solarSystemID);
                 if (system == null)
                 {
                     continue;
@@ -456,8 +460,8 @@ namespace EVE_All_API.StaticData
                     else
                     {
                         // We want to stay safe!
-                        SolarSystem destinationSystem = getSystem(destinationSystemID);
-                        if (destinationSystem != null && destinationSystem.isHighSec())
+                        SolarSystem destinationSystem = GetSystem(destinationSystemID);
+                        if (destinationSystem != null && destinationSystem.IsHighSec())
                         {
                             // Add the system.
                             gateSystems.Add(destinationSystemID);

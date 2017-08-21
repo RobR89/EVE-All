@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
+using static EVE_All_API.YamlUtils;
 
 namespace EVE_All_API.StaticData
 {
-    public class IconID
+    public class IconID : YamlMappingPage<IconID>
     {
         private static Dictionary<int, IconID> icons = new Dictionary<int, IconID>();
-        public static IconID getIconID(int _iconID)
+        public static IconID GetIconID(int _iconID)
         {
             if (icons.ContainsKey(_iconID))
             {
@@ -23,9 +21,9 @@ namespace EVE_All_API.StaticData
         public readonly string description;
         public readonly string iconFile;
 
-        private IconID(int _iconID, YamlNode node)
+        public IconID(YamlNode key, YamlNode node)
         {
-            iconID = _iconID;
+            iconID = Int32.Parse(key.ToString());
             YamlMappingNode mapping = (YamlMappingNode)node;
             foreach (var entry in mapping.Children)
             {
@@ -43,22 +41,7 @@ namespace EVE_All_API.StaticData
                         break;
                 }
             }
-        }
-
-        public static bool loadYAML(YamlStream yaml)
-        {
-            if (yaml == null)
-            {
-                return false;
-            }
-            YamlMappingNode mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
-            foreach (var entry in mapping.Children)
-            {
-                int iconID = Int32.Parse(entry.Key.ToString());
-                IconID icon = new IconID(iconID, entry.Value);
-                icons[iconID] = icon;
-            }
-            return true;
+            icons[iconID] = this;
         }
 
     }

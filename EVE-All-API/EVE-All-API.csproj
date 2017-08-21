@@ -165,6 +165,11 @@
     <Compile Include="StaticData\Blueprint.cs" />
     <Compile Include="PlayerData\Corporation.cs" />
     <Compile Include="GameState\Faction.cs" />
+    <Compile Include="StaticData\ChrAncestry.cs" />
+    <Compile Include="StaticData\ChrBloodline.cs" />
+    <Compile Include="StaticData\ChrFaction.cs" />
+    <Compile Include="StaticData\ChrRace.cs" />
+    <Compile Include="StaticData\CrpNPCCorporation.cs" />
     <Compile Include="StaticData\DgmAttributeCategory.cs" />
     <Compile Include="StaticData\DgmAttributeType.cs" />
     <Compile Include="StaticData\DgmTypeAttribute.cs" />

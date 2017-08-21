@@ -56,7 +56,7 @@ namespace EVE_All.Tabs
         private void loadWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             // Load static data.
-            string err = Loader.loadYAML(loadWorker, 0, 100);
+            string err = Loader.LoadYAML(loadWorker, 0, 100);
             if (err != null)
             {
                 e.Cancel = true;

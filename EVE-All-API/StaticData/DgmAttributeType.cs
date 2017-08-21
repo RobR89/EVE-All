@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
+using static EVE_All_API.YamlUtils;
 
 namespace EVE_All_API.StaticData
 {
-    public class DgmAttributeType
+    public class DgmAttributeType : YamlSequencePage<DgmAttributeType>
     {
         private static Dictionary<int, DgmAttributeType> dgmAttributeTypes = new Dictionary<int, DgmAttributeType>();
-        public static DgmAttributeType getDgmAttributeType(int _typeID)
+        public static DgmAttributeType GetDgmAttributeType(int _typeID)
         {
             if (dgmAttributeTypes.ContainsKey(_typeID))
             {
@@ -31,7 +29,7 @@ namespace EVE_All_API.StaticData
         public readonly int iconID;
         public readonly string displayName;
 
-        private DgmAttributeType(YamlNode node)
+        public DgmAttributeType(YamlNode node)
         {
             YamlMappingNode mapping = (YamlMappingNode)node;
             foreach (var entry in mapping.Children)
@@ -77,22 +75,9 @@ namespace EVE_All_API.StaticData
                         break;
                 }
             }
+            dgmAttributeTypes[attributeID] = this;
         }
 
-        public static bool loadYAML(YamlStream yaml)
-        {
-            if (yaml == null)
-            {
-                return false;
-            }
-            YamlSequenceNode seq = (YamlSequenceNode)yaml.Documents[0].RootNode;
-            foreach (var entry in seq.Children)
-            {
-                DgmAttributeType type = new DgmAttributeType(entry);
-                dgmAttributeTypes[type.attributeID] = type;
-            }
-            return true;
-        }
 
     }
 }

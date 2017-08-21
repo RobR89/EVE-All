@@ -10,7 +10,7 @@ namespace EVE_All_API.StaticData
     public class OrbitalBody
     {
         private static Dictionary<int, OrbitalBody> planets = new Dictionary<int, OrbitalBody>();
-        public static OrbitalBody getUnit(int _planetID)
+        public static OrbitalBody GetOrbitalBody(int _planetID)
         {
             lock(planets)
             {
@@ -60,7 +60,7 @@ namespace EVE_All_API.StaticData
                         radius = Double.Parse(entry.Value.ToString());
                         break;
                     case "position":
-                        position = Location.parseLocation(entry.Value);
+                        position = Location.ParseLocation(entry.Value);
                         break;
                     case "planetAttributes":
                         attributes = new OrbitalBodyAttributes(entry.Value);
@@ -69,13 +69,13 @@ namespace EVE_All_API.StaticData
                         statistics = new OrbitalBodyStatistics(entry.Value);
                         break;
                     case "moons":
-                        moons = OrbitalBody.loadYAML(entry.Value, _solarSystemID);
+                        moons = OrbitalBody.LoadYAML(entry.Value, _solarSystemID);
                         break;
                     case "asteroidBelts":
-                        asteroidBelts = OrbitalBody.loadYAML(entry.Value, _solarSystemID);
+                        asteroidBelts = OrbitalBody.LoadYAML(entry.Value, _solarSystemID);
                         break;
                     case "npcStations":
-                        stations = NPCStation.loadYAML(entry.Value, _solarSystemID);
+                        stations = NPCStation.LoadYAML(entry.Value, _solarSystemID);
                         break;
                     default:
                         System.Diagnostics.Debug.WriteLine("Planet unknown value:" + entry.Key + " = " + entry.Value);
@@ -84,7 +84,7 @@ namespace EVE_All_API.StaticData
             }
         }
 
-        public static List<long> loadYAML(YamlNode yaml, int _solarSystemID)
+        public static List<long> LoadYAML(YamlNode yaml, int _solarSystemID)
         {
             if (yaml == null)
             {

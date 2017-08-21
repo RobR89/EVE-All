@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
+using static EVE_All_API.YamlUtils;
 
 namespace EVE_All_API.StaticData
 {
-    public class InvTypeMaterial
+    public class InvTypeMaterial : YamlSequencePage<InvTypeMaterial>
     {
         private static Dictionary<int, List<InvTypeMaterial>> typeMaterials = new Dictionary<int, List<InvTypeMaterial>>();
-        public static List<InvTypeMaterial> getMarketGroup(int _typeID)
+        public static List<InvTypeMaterial> GetTypeMaterials(int _typeID)
         {
             if (typeMaterials.ContainsKey(_typeID))
             {
@@ -23,7 +21,7 @@ namespace EVE_All_API.StaticData
         public readonly int quantity;
         public readonly int materialTypeID;
 
-        private InvTypeMaterial(YamlNode node)
+        public InvTypeMaterial(YamlNode node)
         {
             YamlMappingNode mapping = (YamlMappingNode)node;
             foreach (var entry in mapping.Children)
@@ -45,25 +43,11 @@ namespace EVE_All_API.StaticData
                         break;
                 }
             }
-        }
-
-        public static bool loadYAML(YamlStream yaml)
-        {
-            if (yaml == null)
+            if (!typeMaterials.ContainsKey(typeID))
             {
-                return false;
+                typeMaterials[typeID] = new List<InvTypeMaterial>();
             }
-            YamlSequenceNode mapping = (YamlSequenceNode)yaml.Documents[0].RootNode;
-            foreach (YamlNode entry in mapping.Children)
-            {
-                InvTypeMaterial material = new InvTypeMaterial(entry);
-                if(!typeMaterials.ContainsKey(material.typeID))
-                {
-                    typeMaterials[material.typeID] = new List<InvTypeMaterial>();
-                }
-                typeMaterials[material.typeID].Add(material);
-            }
-            return true;
+            typeMaterials[typeID].Add(this);
         }
 
     }

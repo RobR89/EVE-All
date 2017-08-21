@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
+using static EVE_All_API.YamlUtils;
 
 namespace EVE_All_API.StaticData
 {
-    public class InvCategory
+    public class InvCategory : YamlMappingPage<InvCategory>
     {
         private static Dictionary<int, InvCategory> categories = new Dictionary<int, InvCategory>();
-        public static InvCategory getCategory(int _categoryID)
+        public static InvCategory GetCategory(int _categoryID)
         {
             if (categories.ContainsKey(_categoryID))
             {
@@ -25,9 +22,9 @@ namespace EVE_All_API.StaticData
         public readonly int iconID;
         public readonly bool published;
 
-        private InvCategory(int _categoryID, YamlNode node)
+        public InvCategory(YamlNode key, YamlNode node)
         {
-            categoryID = _categoryID;
+            categoryID = Int32.Parse(key.ToString());
             YamlMappingNode mapping = (YamlMappingNode)node;
             foreach (var entry in mapping.Children)
             {
@@ -35,7 +32,7 @@ namespace EVE_All_API.StaticData
                 switch (paramName)
                 {
                     case "name":
-                        name = YamlUtils.getLanguageString(YamlUtils.getLanguageStrings(entry.Value), UserData.language);
+                        name = YamlUtils.GetLanguageString(YamlUtils.GetLanguageStrings(entry.Value), UserData.language);
                         break;
                     case "iconID":
                         iconID = Int32.Parse(entry.Value.ToString());
@@ -48,22 +45,7 @@ namespace EVE_All_API.StaticData
                         break;
                 }
             }
-        }
-
-        public static bool loadYAML(YamlStream yaml)
-        {
-            if (yaml == null)
-            {
-                return false;
-            }
-            YamlMappingNode mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
-            foreach (var entry in mapping.Children)
-            {
-                int categoryID = Int32.Parse(entry.Key.ToString());
-                InvCategory category = new InvCategory(categoryID, entry.Value);
-                categories[categoryID] = category;
-            }
-            return true;
+            categories[categoryID] = this;
         }
 
     }

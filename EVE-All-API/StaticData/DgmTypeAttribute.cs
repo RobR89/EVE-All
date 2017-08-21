@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
+using static EVE_All_API.YamlUtils;
 
 namespace EVE_All_API.StaticData
 {
-    public class DgmTypeAttribute
+    public class DgmTypeAttribute : YamlSequencePage<DgmTypeAttribute>
     {
         private static Dictionary<int, List<DgmTypeAttribute>> dgmTypeAttributes = new Dictionary<int, List<DgmTypeAttribute>>();
-        public static List<DgmTypeAttribute> getDgmTypeAttribute(int _typeID)
+        public static List<DgmTypeAttribute> GetDgmTypeAttribute(int _typeID)
         {
             if (dgmTypeAttributes.ContainsKey(_typeID))
             {
@@ -25,7 +23,7 @@ namespace EVE_All_API.StaticData
         public readonly double valueFloat;
         public readonly bool isInt;
 
-        private DgmTypeAttribute(YamlNode node)
+        public DgmTypeAttribute(YamlNode node)
         {
             YamlMappingNode mapping = (YamlMappingNode)node;
             foreach (var entry in mapping.Children)
@@ -52,25 +50,11 @@ namespace EVE_All_API.StaticData
                         break;
                 }
             }
-        }
-
-        public static bool loadYAML(YamlStream yaml)
-        {
-            if (yaml == null)
+            if (!dgmTypeAttributes.ContainsKey(typeID))
             {
-                return false;
+                dgmTypeAttributes[typeID] = new List<DgmTypeAttribute>();
             }
-            YamlSequenceNode seq = (YamlSequenceNode)yaml.Documents[0].RootNode;
-            foreach (var entry in seq.Children)
-            {
-                DgmTypeAttribute gate = new DgmTypeAttribute(entry);
-                if(!dgmTypeAttributes.ContainsKey(gate.typeID))
-                {
-                    dgmTypeAttributes[gate.typeID] = new List<DgmTypeAttribute>();
-                }
-                dgmTypeAttributes[gate.typeID].Add(gate);
-            }
-            return true;
+            dgmTypeAttributes[typeID].Add(this);
         }
 
     }

@@ -74,21 +74,26 @@ namespace EVE_All_API
             }
         }
 
-        private static List<LoadYamlItem> getYamlFiles()
+        private static List<LoadYamlItem> GetYamlFiles()
         {
             LoadYamlItem[] files = {
-                new LoadYamlItem( "/bsd/eveUnits.yaml", EveUnit.loadYAML ),
-                new LoadYamlItem( "/bsd/dgmAttributeCategories.yaml", DgmAttributeCategory.loadYAML ),
-                new LoadYamlItem( "/bsd/dgmAttributeTypes.yaml", DgmAttributeType.loadYAML ),
-                new LoadYamlItem( "/bsd/dgmTypeAttributes.yaml", DgmTypeAttribute.loadYAML ),
-                new LoadYamlItem( "/bsd/invNames.yaml", InvNames.loadYAML ),
-                new LoadYamlItem( "/bsd/invMarketGroups.yaml", InvMarketGroup.loadYAML ),
-                new LoadYamlItem( "/bsd/invTypeMaterials.yaml", InvTypeMaterial.loadYAML ),
-                new LoadYamlItem( "/fsd/categoryIDs.yaml", InvCategory.loadYAML ),
-                new LoadYamlItem( "/fsd/groupIDs.yaml", InvGroup.loadYAML ),
-                new LoadYamlItem( "/fsd/typeIDs.yaml", InvType.loadYAML ),
-                new LoadYamlItem( "/fsd/blueprints.yaml", Blueprint.loadYAML ),
-                new LoadYamlItem( "/fsd/iconIDs.yaml", IconID.loadYAML )
+                new LoadYamlItem( "/bsd/eveUnits.yaml", EveUnit.LoadYAML ),
+                new LoadYamlItem( "/bsd/chrRaces.yaml", ChrRace.LoadYAML ),
+                new LoadYamlItem( "/bsd/chrBloodlines.yaml", ChrBloodline.LoadYAML ),
+                new LoadYamlItem( "/bsd/chrAncestries.yaml", ChrAncestry.LoadYAML ),
+                new LoadYamlItem( "/bsd/chrFactions.yaml", ChrFaction.LoadYAML ),
+                new LoadYamlItem( "/bsd/crpNPCCorporations.yaml", CrpNPCCorporation.LoadYAML ),
+                new LoadYamlItem( "/bsd/dgmAttributeCategories.yaml", DgmAttributeCategory.LoadYAML ),
+                new LoadYamlItem( "/bsd/dgmAttributeTypes.yaml", DgmAttributeType.LoadYAML ),
+                new LoadYamlItem( "/bsd/dgmTypeAttributes.yaml", DgmTypeAttribute.LoadYAML ),
+                new LoadYamlItem( "/bsd/invNames.yaml", InvNames.LoadYAML ),
+                new LoadYamlItem( "/bsd/invMarketGroups.yaml", InvMarketGroup.LoadYAML ),
+                new LoadYamlItem( "/bsd/invTypeMaterials.yaml", InvTypeMaterial.LoadYAML ),
+                new LoadYamlItem( "/fsd/categoryIDs.yaml", InvCategory.LoadYAML ),
+                new LoadYamlItem( "/fsd/groupIDs.yaml", InvGroup.LoadYAML ),
+                new LoadYamlItem( "/fsd/typeIDs.yaml", InvType.LoadYAML ),
+                new LoadYamlItem( "/fsd/blueprints.yaml", Blueprint.LoadYAML ),
+                new LoadYamlItem( "/fsd/iconIDs.yaml", IconID.LoadYAML )
             };
             return new List<LoadYamlItem>(files);
         }
@@ -101,7 +106,7 @@ namespace EVE_All_API
         /// <param name="start">The starting percentage of the work.</param>
         /// <param name="portion">The portion of the progress that is for this activity.</param>
         /// <returns>The error message or null on success.</returns>
-        public static string loadYAML(BackgroundWorker worker, int start, int portion)
+        public static string LoadYAML(BackgroundWorker worker, int start, int portion)
         {
             baseComplete = false;
             List<string> solarSystemFiles = new List<string>();
@@ -132,7 +137,7 @@ namespace EVE_All_API
                 }
             }
             // Get the yaml files.
-            List<LoadYamlItem> yamlFiles = getYamlFiles();
+            List<LoadYamlItem> yamlFiles = GetYamlFiles();
             int baseFiles = yamlFiles.Count;
             worker.ReportProgress(start, "Searching solar system files...");
             int cnt = 0;
@@ -144,7 +149,7 @@ namespace EVE_All_API
                     baseComplete = true;
                     // Start loading some files.
                     string solarSystemFile = solarSystemFiles[0];
-                    yamlFiles.Add(new LoadYamlItem(solarSystemFile, SolarSystem.loadYAML));
+                    yamlFiles.Add(new LoadYamlItem(solarSystemFile, SolarSystem.LoadYAML));
                     solarSystemFiles.Remove(solarSystemFile);
                 }
                 // We still have files to parse.

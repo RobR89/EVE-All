@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
+using static EVE_All_API.YamlUtils;
 
 namespace EVE_All_API.StaticData
 {
-    public class Blueprint
+    public class Blueprint : YamlMappingPage<Blueprint>
     {
         private static Dictionary<int, Blueprint> blueprints = new Dictionary<int, Blueprint>();
-        public static Blueprint getType(int _typeID)
+        public static Blueprint GetType(int _typeID)
         {
             if (blueprints.ContainsKey(_typeID))
             {
@@ -27,8 +25,9 @@ namespace EVE_All_API.StaticData
         public readonly Activity research_material;
         public readonly Activity research_time;
 
-        private Blueprint(YamlNode node)
+        public Blueprint(YamlNode key, YamlNode node)
         {
+            blueprintTypeID = Int32.Parse(key.ToString());
             YamlMappingNode mapping = (YamlMappingNode)node;
             foreach (var entry in mapping.Children)
             {
@@ -74,6 +73,7 @@ namespace EVE_All_API.StaticData
                         break;
                 }
             }
+            blueprints[blueprintTypeID] = this;
         }
 
         public class ActivityProduct
@@ -210,22 +210,6 @@ namespace EVE_All_API.StaticData
                 }
             }
 
-        }
-
-        public static bool loadYAML(YamlStream yaml)
-        {
-            if (yaml == null)
-            {
-                return false;
-            }
-            YamlMappingNode mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
-            foreach (var entry in mapping.Children)
-            {
-                int bpID = Int32.Parse(entry.Key.ToString());
-                Blueprint bp = new Blueprint(entry.Value);
-                blueprints[bpID] = bp;
-            }
-            return true;
         }
 
     }

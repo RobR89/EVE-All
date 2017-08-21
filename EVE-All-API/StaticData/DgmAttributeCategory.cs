@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
+using static EVE_All_API.YamlUtils;
 
 namespace EVE_All_API.StaticData
 {
-    public class DgmAttributeCategory
+    public class DgmAttributeCategory : YamlSequencePage<DgmAttributeCategory>
     {
         private static Dictionary<int, DgmAttributeCategory> dgmAttributeCategories = new Dictionary<int, DgmAttributeCategory>();
-        public static DgmAttributeCategory getDgmAttributeCategory(int _categoryID)
+        public static DgmAttributeCategory GetDgmAttributeCategory(int _categoryID)
         {
             if (dgmAttributeCategories.ContainsKey(_categoryID))
             {
@@ -23,7 +21,7 @@ namespace EVE_All_API.StaticData
         public readonly string categoryName;
         public readonly string categoryDescription;
 
-        private DgmAttributeCategory(YamlNode node)
+        public DgmAttributeCategory(YamlNode node)
         {
             YamlMappingNode mapping = (YamlMappingNode)node;
             foreach (var entry in mapping.Children)
@@ -45,21 +43,7 @@ namespace EVE_All_API.StaticData
                         break;
                 }
             }
-        }
-
-        public static bool loadYAML(YamlStream yaml)
-        {
-            if (yaml == null)
-            {
-                return false;
-            }
-            YamlSequenceNode seq = (YamlSequenceNode)yaml.Documents[0].RootNode;
-            foreach (var entry in seq.Children)
-            {
-                DgmAttributeCategory cat = new DgmAttributeCategory(entry);
-                dgmAttributeCategories[cat.categoryID] = cat;
-            }
-            return true;
+            dgmAttributeCategories[categoryID] = this;
         }
 
     }

@@ -10,7 +10,7 @@ namespace EVE_All_API.StaticData
     public class NPCStation
     {
         private static Dictionary<long, NPCStation> stations = new Dictionary<long, NPCStation>();
-        public static NPCStation getUnit(long _stationID)
+        public static NPCStation GetNPCStation(long _stationID)
         {
             lock(stations)
             {
@@ -58,7 +58,7 @@ namespace EVE_All_API.StaticData
                         isConquerable = Boolean.Parse(entry.Value.ToString());
                         break;
                     case "position":
-                        position = Location.parseLocation(entry.Value);
+                        position = Location.ParseLocation(entry.Value);
                         break;
                     case "reprocessingEfficiency":
                         reprocessingEfficiency = Double.Parse(entry.Value.ToString());
@@ -82,7 +82,7 @@ namespace EVE_All_API.StaticData
             }
         }
 
-        public static List<long> loadYAML(YamlNode yaml, int _solarSystemID)
+        public static List<long> LoadYAML(YamlNode yaml, int _solarSystemID)
         {
             if (yaml == null)
             {

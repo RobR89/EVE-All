@@ -151,7 +151,7 @@ namespace EVE_All_API
         /// <returns>The image or null if not found.</returns>
         public static Image getIconImage(int iconID)
         {
-            IconID icon = IconID.getIconID(iconID);
+            IconID icon = IconID.GetIconID(iconID);
             if(icon == null)
             {
                 return null;
@@ -298,7 +298,7 @@ namespace EVE_All_API
             worker.ReportProgress(0, "Finding needed images.");
             List<int> types = new List<int>();
             List<int> icons = new List<int>();
-            List<InvMarketGroup> groups = InvMarketGroup.getRootGroups();
+            List<InvMarketGroup> groups = InvMarketGroup.GetRootGroups();
             while (groups.Count > 0)
             {
                 InvMarketGroup group = groups[0];
@@ -306,9 +306,9 @@ namespace EVE_All_API
                 // Add icon.
                 icons.Add(group.iconID);
                 // Add child groups to search list.
-                groups.AddRange(InvMarketGroup.getGroupChildren(group.marketGroupID));
+                groups.AddRange(InvMarketGroup.GetGroupChildren(group.marketGroupID));
                 // Get types for group.
-                List<InvType> groupTypes = InvType.getMarketGroupTypes(group.marketGroupID);
+                List<InvType> groupTypes = InvType.GetMarketGroupTypes(group.marketGroupID);
                 // Add types to group.
                 foreach (InvType type in groupTypes)
                 {
@@ -378,7 +378,7 @@ namespace EVE_All_API
                 int totalFiles = icons.Count;
                 foreach (int iconID in icons)
                 {
-                    IconID icon = IconID.getIconID(iconID);
+                    IconID icon = IconID.GetIconID(iconID);
                     if (icon == null)
                     {
                         continue;

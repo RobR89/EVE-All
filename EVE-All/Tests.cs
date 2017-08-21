@@ -22,8 +22,8 @@ namespace EVE_All
         {
             // Will only work after loading successful.
             DateTime s = DateTime.Now;
-            SolarSystem start = SolarSystem.getSystem(30002510);
-            List<int> path = start.findPath(30000142, true);
+            SolarSystem start = SolarSystem.GetSystem(30002510);
+            List<int> path = start.FindPath(30000142, true);
             if (path == null)
             {
                 System.Diagnostics.Debug.WriteLine("Path not found.");
@@ -34,7 +34,7 @@ namespace EVE_All
                 foreach (int systemID in path)
                 {
                     //SolarSystem system = SolarSystem.getSystem(systemID);
-                    System.Diagnostics.Debug.WriteLine(systemID + ": " + InvNames.getName(systemID));
+                    System.Diagnostics.Debug.WriteLine(systemID + ": " + InvNames.GetName(systemID));
                 }
             }
             DateTime f = DateTime.Now;

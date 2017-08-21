@@ -75,12 +75,11 @@ namespace EVE_All.Tabs
         private void UpdateCharacterSheet()
         {
             nameLabel.Text = pilot.characterSheet.name;
-            // TO-DO: load actual names once chrBloodlines, chrRace, and chrAncestries are loaded.
             // Populate the race, bloodline, and ancestry.
-            string race = pilot.characterSheet.race_id.ToString();
-            string bloodLine = pilot.characterSheet.bloodLine_id.ToString();
-            string ancestry = pilot.characterSheet.ancestry_id.ToString();
-            raceLabel.Text = pilot.characterSheet.gender + " - " + race + " - " + bloodLine + " - " + ancestry;
+            ChrRace race = ChrRace.GetRace(pilot.characterSheet.race_id);
+            ChrBloodline bloodLine = ChrBloodline.GetBloodline(pilot.characterSheet.bloodLine_id);
+            ChrAncestry ancestry = ChrAncestry.GetAncestry(pilot.characterSheet.ancestry_id);
+            raceLabel.Text = pilot.characterSheet.gender + " - " + race?.raceName + " - " + bloodLine?.bloodlineName + " - " + ancestry?.ancestryName;
             // Update the birthday.
             BirthdayLabel.Text = "Birthday: " + pilot.characterSheet.birthday.ToString();
             // Update security status.

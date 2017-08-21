@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
+using static EVE_All_API.YamlUtils;
 
 namespace EVE_All_API.StaticData
 {
-    public class InvType
+    public class InvType : YamlMappingPage<InvType>
     {
         private static Dictionary<int, InvType> types = new Dictionary<int, InvType>();
-        public static InvType getType(int _typeID)
+        public static InvType GetInvType(int _typeID)
         {
             if (types.ContainsKey(_typeID))
             {
@@ -19,7 +17,7 @@ namespace EVE_All_API.StaticData
             return null;
         }
         private static Dictionary<int, List<InvType>> groupTypes = new Dictionary<int, List<InvType>>();
-        public static List<InvType> getGroupTypes(int _groupID)
+        public static List<InvType> GetGroupTypes(int _groupID)
         {
             // Have we compiled this list before?
             if (groupTypes.ContainsKey(_groupID))
@@ -40,7 +38,7 @@ namespace EVE_All_API.StaticData
         }
 
         private static Dictionary<int, List<InvType>> marketGroupTypes = new Dictionary<int, List<InvType>>();
-        public static List<InvType> getMarketGroupTypes(int _groupID)
+        public static List<InvType> GetMarketGroupTypes(int _groupID)
         {
             // Have we compiled this list before?
             if (marketGroupTypes.ContainsKey(_groupID))
@@ -87,9 +85,9 @@ namespace EVE_All_API.StaticData
         public readonly Dictionary<int, List<ShipBonus>> traitTypes;
         public readonly List<ShipBonus> miscBonuses;
 
-        private InvType(int _typeID, YamlNode node)
+        public InvType(YamlNode key, YamlNode node)
         {
-            typeID = _typeID;
+            typeID = Int32.Parse(key.ToString());
             YamlMappingNode mapping = (YamlMappingNode)node;
             foreach (var entry in mapping.Children)
             {
@@ -97,10 +95,10 @@ namespace EVE_All_API.StaticData
                 switch (paramName)
                 {
                     case "name":
-                        name = YamlUtils.getLanguageString(YamlUtils.getLanguageStrings(entry.Value), UserData.language);
+                        name = YamlUtils.GetLanguageString(YamlUtils.GetLanguageStrings(entry.Value), UserData.language);
                         break;
                     case "description":
-                        description = YamlUtils.getLanguageString(YamlUtils.getLanguageStrings(entry.Value), UserData.language);
+                        description = YamlUtils.GetLanguageString(YamlUtils.GetLanguageStrings(entry.Value), UserData.language);
                         break;
                     case "capacity":
                         capacity = Double.Parse(entry.Value.ToString());
@@ -151,7 +149,7 @@ namespace EVE_All_API.StaticData
                         sofFactionName = entry.Value.ToString();
                         break;
                     case "masteries":
-                        masteries = YamlUtils.loadIndexedIntList(entry.Value);
+                        masteries = YamlUtils.LoadIndexedIntList(entry.Value);
                         break;
                     case "traits":
                         YamlMappingNode traitMap = (YamlMappingNode)entry.Value;
@@ -161,13 +159,13 @@ namespace EVE_All_API.StaticData
                             switch (traitName)
                             {
                                 case "roleBonuses":
-                                    roleBonuses = ShipBonus.loadBonusList(trait.Value);
+                                    roleBonuses = ShipBonus.LoadBonusList(trait.Value);
                                     break;
                                 case "types":
-                                    traitTypes = ShipBonus.loadBonusMap(trait.Value);
+                                    traitTypes = ShipBonus.LoadBonusMap(trait.Value);
                                     break;
                                 case "miscBonuses":
-                                    miscBonuses = ShipBonus.loadBonusList(trait.Value);
+                                    miscBonuses = ShipBonus.LoadBonusList(trait.Value);
                                     break;
                                 default:
                                     System.Diagnostics.Debug.WriteLine("InvType unknown trait:" + trait.Key + " = " + trait.Value);
@@ -180,22 +178,7 @@ namespace EVE_All_API.StaticData
                         break;
                 }
             }
-        }
-
-        public static bool loadYAML(YamlStream yaml)
-        {
-            if (yaml == null)
-            {
-                return false;
-            }
-            YamlMappingNode mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
-            foreach (var entry in mapping.Children)
-            {
-                int typeID = Int32.Parse(entry.Key.ToString());
-                InvType type = new InvType(typeID, entry.Value);
-                types[typeID] = type;
-            }
-            return true;
+            types[typeID] = this;
         }
 
     }

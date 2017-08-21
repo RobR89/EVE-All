@@ -49,7 +49,7 @@ namespace EVE_All.Tabs
             // Set up the images.
             marketTree.ImageList = new ImageList();
             // Get child groups.
-            List<InvMarketGroup> groups = InvMarketGroup.getRootGroups();
+            List<InvMarketGroup> groups = InvMarketGroup.GetRootGroups();
             groups = groups.OrderBy(g => g.marketGroupName).ToList();
             // Add the groups.
             populateTreeGroups(marketTree.Nodes, marketTree.ImageList, groups);
@@ -92,10 +92,10 @@ namespace EVE_All.Tabs
             }
             int groupID = pGroup.marketGroupID;
             // Get child groups.
-            List<InvMarketGroup> groups = InvMarketGroup.getGroupChildren(groupID);
+            List<InvMarketGroup> groups = InvMarketGroup.GetGroupChildren(groupID);
             groups = groups.OrderBy(g => g.marketGroupName).ToList();
             // Get types for group.
-            List<InvType> groupTypes = InvType.getMarketGroupTypes(groupID);
+            List<InvType> groupTypes = InvType.GetMarketGroupTypes(groupID);
             groupTypes = groupTypes.OrderBy(g => g.name).ToList();
             // Begin update.
             marketTree.BeginUpdate();
