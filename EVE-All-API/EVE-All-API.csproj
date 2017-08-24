@@ -159,6 +159,7 @@
     <Compile Include="ESI\ESIPage.cs" />
     <Compile Include="ESI\Market.cs" />
     <Compile Include="ESI\Sovereignty.cs" />
+    <Compile Include="ESI\Universe.cs" />
     <Compile Include="GameState\Alliance.cs" />
     <Compile Include="Loader.cs" />
     <Compile Include="SSO\AccessToken.cs" />

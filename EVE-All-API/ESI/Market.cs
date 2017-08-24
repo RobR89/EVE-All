@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace EVE_All_API.ESI
 {
@@ -49,7 +48,7 @@ namespace EVE_All_API.ESI
 
         public static void LoadMarketOrders(BinaryReader load)
         {
-            lock (marketOrders)
+            lock (regionPages)
             {
                 // Load the expire time.
                 int entries = load.ReadInt32();
@@ -112,6 +111,7 @@ namespace EVE_All_API.ESI
 
             public MarketOrder()
             {
+                // Constructor for JSON loading.
             }
             public MarketOrder(BinaryReader load)
             {
@@ -152,38 +152,89 @@ namespace EVE_All_API.ESI
             }
         }
 
-        private class MarketRegionPage : ESIList<MarketOrder>
+        public delegate void RegionHandler(int regionID);
+        public static event RegionHandler RegionUpdate;
+
+        /// <summary>
+        /// Issue an event to all listeners telling them a region has been updated.
+        /// </summary>
+        /// <param name="regionID">The region ID of the region that was updated.</param>
+        /// <remarks>the regionPages object must NOT be locked.</remarks>
+        private static void IssueUpdate(int regionID)
         {
-            public int regionID;
+            bool entered = Monitor.IsEntered(regionPages);
+            if (entered)
+            {
+                Monitor.Exit(regionPages);
+            }
+            RegionUpdate?.Invoke(regionID);
+            if(entered)
+            {
+                Monitor.Enter(regionPages);
+            }
+        }
+
+        public class MarketRegionPage : ESIList<MarketOrder>
+        {
+            public readonly int regionID;
             public MarketRegionPage(BinaryReader load)
             {
                 regionID = load.ReadInt32();
                 expire = new DateTime(load.ReadInt64());
-                SetUpESI();
                 // Load the number of entries.
                 int entries = load.ReadInt32();
                 for (int i = 0; i < entries; i++)
                 {
                     MarketOrder order = new MarketOrder(load);
                     items.Add(order);
-                    AddOrder(order);
                 }
+                lock (regionPages)
+                {
+                    regionPages[regionID] = this;
+                }
+                SetUpESI();
             }
 
             public MarketRegionPage(int region_ID)
             {
                 regionID = region_ID;
+                lock (regionPages)
+                {
+                    regionPages[regionID] = this;
+                }
                 SetUpESI();
             }
+
             private void SetUpESI()
             {
                 // Set up ESI page.
                 url = "markets/" + regionID + "/orders/";
-                autoUpdate = false;
                 query = new Dictionary<string, string>
                 {
                     ["order_type"] = "all"
                 };
+                autoUpdate = false;
+                PageUpdated += MarketRegionPage_PageUpdated;
+                ScheduleRefresh();
+            }
+
+            private void MarketRegionPage_PageUpdated(object page)
+            {
+                lock (regionPages)
+                {
+                    // Add regionID reference.
+                    foreach (MarketOrder order in regionPages[regionID].items)
+                    {
+                        if (order == null)
+                        {
+                            continue;
+                        }
+                        order.regionID = regionID;
+                    }
+                }
+                // Issue response outside of lock to prevent deadlock.
+                // Issue update callback.
+                IssueUpdate(regionID);
             }
 
             public void Save(BinaryWriter save)
@@ -198,95 +249,72 @@ namespace EVE_All_API.ESI
                 }
             }
 
-        }
-        private static Dictionary<int, MarketRegionPage> regionPages = new Dictionary<int, MarketRegionPage>();
+            public List<MarketOrder> GetOrdersForType(int typeID)
+            {
+                lock (this)
+                {
+                    return new List<MarketOrder>(items.Where(order => order.type_id == typeID));
+                }
+            }
 
-        public static void UpdateRegionMarket(int regionID)
+            public List<MarketOrder> GetOrders()
+            {
+                lock (this)
+                {
+                    return new List<MarketOrder>(items);
+                }
+            }
+        }
+
+        private static Dictionary<int, MarketRegionPage> regionPages = new Dictionary<int, MarketRegionPage>();
+        public static MarketRegionPage GetRegionPage(int regionID, bool create)
         {
+            if(Universe.GetRegion(regionID) == null)
+            {
+                return null;
+            }
             lock (regionPages)
             {
                 if (!regionPages.ContainsKey(regionID))
                 {
+                    if(!create)
+                    {
+                        return null;
+                    }
                     regionPages[regionID] = new MarketRegionPage(regionID);
                 }
-                JSON.JSONResponse resp = regionPages[regionID].GetPage();
-                if (resp.httpCode == System.Net.HttpStatusCode.OK)
-                {
-                    lock (marketOrders)
-                    {
-                        foreach (MarketOrder order in regionPages[regionID].items)
-                        {
-                            order.regionID = regionID;
-                            AddOrder(order);
-                        }
-                    }
-                }
+                return regionPages[regionID];
             }
         }
 
-        private static Dictionary<long, MarketOrder> marketOrders = new Dictionary<long, MarketOrder>();
-        public static MarketOrder GetOrder(long orderID)
+        public static List<MarketOrder> GetOrdersForType(int typeID)
         {
-            lock(marketOrders)
+            List<MarketOrder> orders = new List<MarketOrder>();
+            lock(regionPages)
             {
-                if(marketOrders.ContainsKey(orderID))
+                foreach(MarketRegionPage page in regionPages.Values)
                 {
-                    return marketOrders[orderID];
+                    orders.AddRange(page.GetOrdersForType(typeID));
                 }
             }
-            return null;
-        }
-        private static Dictionary<int, List<long>> typeOrders = new Dictionary<int, List<long>>();
-        public static List<long> GetOrdersForType(int typeID)
-        {
-            List<long> result = new List<long>();
-            lock (marketOrders)
-            {
-                if(typeOrders.ContainsKey(typeID))
-                {
-                    result.AddRange(typeOrders[typeID]);
-                }
-            }
-            return result;
-        }
-        private static Dictionary<int, List<long>> regionOrders = new Dictionary<int, List<long>>();
-        public static List<long> GetOrdersForRegion(int regionID)
-        {
-            List<long> result = new List<long>();
-            lock (marketOrders)
-            {
-                if (regionOrders.ContainsKey(regionID))
-                {
-                    result.AddRange(regionOrders[regionID]);
-                }
-            }
-            return result;
-        }
-        public static List<long> GetOrdersForTypeAndRegion(int typeID, int regionID)
-        {
-            List<long> type = GetOrdersForType(typeID);
-            List<long> region = GetOrdersForRegion(regionID);
-            return new List<long>(type.Intersect(region));
+            return orders;
         }
 
-        /// <summary>
-        /// Add an order and indexs.
-        /// </summary>
-        /// <param name="order">The order to add</param>
-        /// <remarks>Must be called with marketOrders locked.</remarks>
-        private static void AddOrder(MarketOrder order)
+        public static List<MarketOrder> GetOrdersForRegion(int regionID)
         {
-            marketOrders[order.order_id] = order;
-            if (!typeOrders.ContainsKey(order.type_id))
+            MarketRegionPage page = GetRegionPage(regionID, false);
+            if (page != null)
             {
-                typeOrders[order.type_id] = new List<long>();
+                return page.GetOrders();
             }
-            typeOrders[order.type_id].Add(order.order_id);
-            if (!regionOrders.ContainsKey(order.regionID))
-            {
-                regionOrders[order.regionID] = new List<long>();
-            }
-            regionOrders[order.regionID].Add(order.order_id);
+            // Return empty list.
+            return new List<MarketOrder>();
+        }
+        public static List<MarketOrder> GetOrdersForTypeAndRegion(int typeID, int regionID)
+        {
+            List<MarketOrder> type = GetOrdersForType(typeID);
+            List<MarketOrder> region = GetOrdersForRegion(regionID);
+            return new List<MarketOrder>(type.Intersect(region));
         }
 
         #endregion
@@ -315,15 +343,30 @@ namespace EVE_All_API.ESI
             }
         }
 
-        private class PricesPage : ESIList<MarketValue>
+        public class PricesPage : ESIList<MarketValue>
         {
             public PricesPage()
             {
                 url = "markets/prices/";
                 autoUpdate = false;
+                PageUpdated += PricesPage_PageUpdated;
+                ScheduleRefresh();
+            }
+
+            private void PricesPage_PageUpdated(object page)
+            {
+                lock (marketValues)
+                {
+                    // Update expire time.
+                    marketValues.Clear();
+                    foreach (MarketValue value in pricesPage.items)
+                    {
+                        marketValues[value.type_id] = value;
+                    }
+                }
             }
         }
-        private static PricesPage pricesPage = new PricesPage();
+        public static readonly PricesPage pricesPage = new PricesPage();
 
         private static Dictionary<int, MarketValue> marketValues = new Dictionary<int, MarketValue>();
         public static MarketValue GetMarketValue(int typeID)
@@ -338,28 +381,6 @@ namespace EVE_All_API.ESI
             return null;
         }
 
-        public static void UpdateMarketValues()
-        {
-            lock (pricesPage)
-            {
-                JSON.JSONResponse resp = pricesPage.GetPage();
-                if (pricesPage.items.Count == 0)
-                {
-                    // No data returned.
-                    return;
-                }
-                lock (marketValues)
-                {
-                    // Update expire time.
-                    marketValues.Clear();
-                    foreach (MarketValue value in pricesPage.items)
-                    {
-                        marketValues[value.type_id] = value;
-                    }
-                }
-            }
-        }
-
         #endregion
 
         #region MarketGroups
@@ -369,12 +390,13 @@ namespace EVE_All_API.ESI
             {
                 url = "markets/groups/" + groupID + "/";
                 autoUpdate = false;
-                autoUpdateAction = new Action<Task>(_ => Refresh()); ;
+                ScheduleRefresh();
+                lock(marketGroups)
+                {
+                    marketGroups[groupID] = this;
+                }
             }
-            protected void Refresh()
-            {
-                GetPage();
-            }
+
             public int market_group_id;
             public string name;
             public string description;
@@ -395,28 +417,39 @@ namespace EVE_All_API.ESI
             return null;
         }
 
-        private static ESIList<int> groupIDs = new ESIList<int>()
+        public class MarketGoupsPage : ESIList<int>
         {
-            url = "markets/groups/"
-        };
-        public static void UpdateMarketGroups()
-        {
-            groupIDs.GetPage();
-            if (groupIDs.items.Count > 0)
+            public MarketGoupsPage()
             {
-                lock (marketGroups)
+                url = "markets/groups/";
+                PageUpdated += MarketGoupsPage_PageUpdated;
+                autoUpdate = false;
+            }
+
+            private void MarketGoupsPage_PageUpdated(object page)
+            {
+                List<int> groups = new List<int>();
+                lock (this)
                 {
-                    foreach (int groupID in groupIDs.items)
+                    if (items.Count > 0)
                     {
-                        if (!marketGroups.ContainsKey(groupID))
-                        {
-                            marketGroups[groupID] = new MarketGroup(groupID);
-                        }
-                        marketGroups[groupID].ScheduleRefresh();
+                        // Copy the list.
+                        groups = new List<int>(items);
                     }
+                }
+                // Release the lock before creating more items that might cause deadlocks.
+                foreach (int groupID in groups)
+                {
+                    if (!marketGroups.ContainsKey(groupID))
+                    {
+                        marketGroups[groupID] = new MarketGroup(groupID);
+                    }
+                    marketGroups[groupID].ScheduleRefresh();
                 }
             }
         }
+
+        public static readonly MarketGoupsPage marketGroupsPage = new MarketGoupsPage();
         #endregion
 
     }

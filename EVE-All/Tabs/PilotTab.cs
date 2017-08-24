@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Windows.Forms;
 using EVE_All_API;
 using EVE_All_API.StaticData;
@@ -27,12 +20,12 @@ namespace EVE_All.Tabs
             RequestUpdate();
         }
 
-        private void Pilot_EsiUpdate(Pilot.PilotEvent e)
+        private void Pilot_EsiUpdate(Pilot p, Pilot.PilotEvent e)
         {
             if(InvokeRequired)
             {
                 // Insure this is called in a GUI friendly thread.
-                Invoke((MethodInvoker)delegate{ Pilot_EsiUpdate(e); });
+                Invoke((MethodInvoker)delegate{ Pilot_EsiUpdate(p, e); });
                 return;
             }
             switch (e)
@@ -53,8 +46,8 @@ namespace EVE_All.Tabs
         public void RequestUpdate()
         {
             // Update pilot info.
-            new Task(pilot.LoadCharacterSheet).Start();
-            new Task(pilot.LoadAttributes).Start();
+            pilot.characterSheet.ScheduleRefresh();
+            pilot.characterAttributes.ScheduleRefresh();
             new Task(() => pilot.LoadImage(128)).Start();
 
             //balanceLabel.Text = "Balance: " + pilot.balance.ToString("N") + " ISK";

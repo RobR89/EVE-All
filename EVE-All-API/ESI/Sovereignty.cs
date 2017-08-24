@@ -17,7 +17,7 @@ namespace EVE_All_API.ESI
             public DateTime vulnerable_end_time;
         }
 
-        private class StructuresPage : ESIList<Structure>
+        public class StructuresPage : ESIList<Structure>
         {
             public StructuresPage()
             {
@@ -25,7 +25,7 @@ namespace EVE_All_API.ESI
                 autoUpdate = false;
             }
         }
-        private static StructuresPage structuresPage = new StructuresPage();
+        public static readonly StructuresPage structuresPage = new StructuresPage();
 
         public static Structure GetStructure(long structureID)
         {
@@ -42,18 +42,6 @@ namespace EVE_All_API.ESI
             return null;
         }
 
-        public static bool UpdateStructures()
-        {
-            lock (structuresPage)
-            {
-                JSON.JSONResponse resp = structuresPage.GetPage();
-                if (resp.httpCode == System.Net.HttpStatusCode.OK)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
         #endregion
 
         #region map
@@ -65,7 +53,7 @@ namespace EVE_All_API.ESI
             public long corporation_id;
         }
 
-        private class MapsPage : ESIList<Map>
+        public class MapsPage : ESIList<Map>
         {
             public MapsPage()
             {
@@ -73,7 +61,7 @@ namespace EVE_All_API.ESI
                 autoUpdate = false;
             }
         }
-        private static MapsPage mapsPage = new MapsPage();
+        public static readonly MapsPage mapsPage = new MapsPage();
 
         public static Map GetMap(int systemID)
         {
@@ -90,18 +78,6 @@ namespace EVE_All_API.ESI
             return null;
         }
 
-        public static bool UpdateMap()
-        {
-            lock (mapsPage)
-            {
-                JSON.JSONResponse resp = mapsPage.GetPage();
-                if (resp.httpCode == System.Net.HttpStatusCode.OK)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
         #endregion
     }
 }

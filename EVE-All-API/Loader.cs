@@ -1,4 +1,5 @@
-﻿using EVE_All_API.StaticData;
+﻿using EVE_All_API.ESI;
+using EVE_All_API.StaticData;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -38,6 +39,9 @@ namespace EVE_All_API
 
             private void Worker_DoWork(object sender, DoWorkEventArgs e)
             {
+                // Load Region IDs.
+                Universe.GetRegions();
+                // Load YAML files.
                 YamlStream yaml = null;
                 StreamReader reader = null;
                 lock (zipFiles)
@@ -74,6 +78,50 @@ namespace EVE_All_API
             }
         }
 
+        /*
+         * Files left to finish...
+         * agtAgents
+         * agtAgentTypes
+         * agtResearchAgents
+         * chrAttributes
+         * crpActivities
+         * crpNPCCorporationDivisions
+         * crpNPCCorporationResearchFields
+         * crpNPCCorporationTrades
+         * crpNPCDivisions
+         * dgmEffects
+         * dgmExpressions
+         * dgmTypeEffects
+         * invContrabandTypes
+         * invControlTowerResourcePurposes   ???
+         * invControlTowerResources          ???
+         * invFlags
+         * invItems
+         * invMetaGroups
+         * invMetaTypes
+         * invPositions
+         * invUnigueNames
+         * mapUniverse
+         * planetSchematics
+         * planetSchematicsPinMap
+         * planetSchematicsTypeMap
+         * ramActivities
+         * ramAssemblyLineStations
+         * ramAssemblyLineTypeDetailPerCategory
+         * ramAssemblyLineTypeDetailPerGroup
+         * ramAssemblyLineTypes
+         * ramInstallationTypeContents
+         * staOperations
+         * staOperationServices
+         * staServices
+         * staStations
+         * staStationTypes
+         * trnTranslationColumns
+         * trnTranslationLanguages
+         * trnTranslations
+         * warCombatZones
+         * warCombatZoneSystems
+         */
         private static List<LoadYamlItem> GetYamlFiles()
         {
             LoadYamlItem[] files = {

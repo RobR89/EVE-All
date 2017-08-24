@@ -52,7 +52,7 @@ namespace EVE_All
             UserData.language = cul.TwoLetterISOLanguageName;
 
             // Create default configuration Paths.
-            string configPath = findConfigPath();
+            string configPath = FindConfigPath();
             UserData.cachePath = configPath + "/cache/";
             UserData.imagePath = configPath + "/image/";
 
@@ -65,10 +65,12 @@ namespace EVE_All
             while (UserData.sdeZip == null || !File.Exists(UserData.sdeZip))
             {
                 // TO-DO: add dialog informing user of where they can download the files from with a clickable link.
-                OpenFileDialog getZipDialog = new OpenFileDialog();
-                getZipDialog.Title = "Requires 'SDE'.zip file";
-                getZipDialog.Filter = "ZIP files|*.zip";
-                getZipDialog.InitialDirectory = Directory.GetCurrentDirectory();
+                OpenFileDialog getZipDialog = new OpenFileDialog()
+                {
+                    Title = "Requires 'SDE'.zip file",
+                    Filter = "ZIP files|*.zip",
+                    InitialDirectory = Directory.GetCurrentDirectory()
+                };
                 DialogResult result = getZipDialog.ShowDialog();
                 if (result != DialogResult.OK || !File.Exists(getZipDialog.FileName))
                 {
@@ -81,15 +83,17 @@ namespace EVE_All
 
             // Create the loader tab.
             loaderTab = new TabPage("Loader");
-            LoaderTab loader = new LoaderTab();
-            loader.Dock = DockStyle.Fill;
-            loader.loadingComplete += Loader_loadingComplete;
+            LoaderTab loader = new LoaderTab()
+            {
+                Dock = DockStyle.Fill
+            };
+            loader.LoadingComplete += Loader_loadingComplete;
             // Add loader to tabs.
             loaderTab.Controls.Add(loader);
             tabs.TabPages.Add(loaderTab);
         }
 
-        private static string findConfigPath()
+        private static string FindConfigPath()
         {
             string keepPath = Application.UserAppDataPath;
             string workingPath = keepPath;
@@ -111,18 +115,28 @@ namespace EVE_All
             if (args?.loaderSuccess == true && args?.imageSuccess == true)
             {
                 // loading succeded.
+                if (UserData.cachePath != null)
+                {
+                    // Load cached market data.
+                    //Market.LoadAll(UserData.cachePath + "Market.cache");
+                }
+
                 // Remove loader.
                 tabs.TabPages.Remove(loaderTab);
 
                 // Create pilot list tab
-                pilotListTab = new TabPage("Characters");
-                pilotListTab.Dock = DockStyle.Fill;
+                pilotListTab = new TabPage("Characters")
+                {
+                    Dock = DockStyle.Fill
+                };
                 pilotListTab.Controls.Add(new PilotListTab());
                 tabs.TabPages.Add(pilotListTab);
 
                 // Create market browser tab
-                marketTab = new TabPage("Market");
-                marketTab.Dock = DockStyle.Fill;
+                marketTab = new TabPage("Market")
+                {
+                    Dock = DockStyle.Fill
+                };
                 marketTab.Controls.Add(new MarketBrowserTab());
                 tabs.TabPages.Add(marketTab);
 
@@ -135,7 +149,7 @@ namespace EVE_All
             }
         }
 
-        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ExitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close();
         }
@@ -149,7 +163,7 @@ namespace EVE_All
             UserData.SaveConfig();
         }
 
-        private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
+        private void OptionsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using(OptionsDialog options = new OptionsDialog())
             {
@@ -164,7 +178,7 @@ namespace EVE_All
 
         }
 
-        private void loginToCharacterToolStripMenuItem_Click(object sender, EventArgs e)
+        private void LoginToCharacterToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SSO.StartRequest();
         }

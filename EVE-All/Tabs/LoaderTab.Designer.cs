@@ -50,9 +50,9 @@
             // 
             this.loadWorker.WorkerReportsProgress = true;
             this.loadWorker.WorkerSupportsCancellation = true;
-            this.loadWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.loadWorker_DoWork);
-            this.loadWorker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.loadWorker_ProgressChanged);
-            this.loadWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.loadWorker_RunWorkerCompleted);
+            this.loadWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.LoadWorker_DoWork);
+            this.loadWorker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.LoadWorker_ProgressChanged);
+            this.loadWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.LoadWorker_RunWorkerCompleted);
             // 
             // loadProgress
             // 

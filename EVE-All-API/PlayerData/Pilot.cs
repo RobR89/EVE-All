@@ -1,9 +1,7 @@
 ﻿using EVE_All_API.ESI;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Threading.Tasks;
 
 namespace EVE_All_API
 {
@@ -26,11 +24,11 @@ namespace EVE_All_API
         }
 
         public enum PilotEvent { CharacterSheetUpdate, AttributesUpdate, ImageLoaded };
-        public delegate void PilotHandler(PilotEvent e);
+        public delegate void PilotHandler(Pilot p, PilotEvent e);
         public event PilotHandler EsiUpdate;
         private void IssueUpdate(PilotEvent e)
         {
-            EsiUpdate?.Invoke(e);
+            EsiUpdate?.Invoke(this, e);
         }
 
 #region Depreciated
@@ -92,10 +90,21 @@ namespace EVE_All_API
             // Set up ESI pages.
             // Character Sheet
             characterSheet.url = "characters/" + characterID.ToString() + "/";
-            characterSheet.autoUpdateAction = new Action<Task>( _ => LoadCharacterSheet());
+            characterSheet.PageUpdated += CharacterSheet_PageUpdated;
             // Attributes.
+            characterAttributes.characterID = characterID;
             characterAttributes.url = "characters/" + characterID.ToString() + "/attributes/";
-            characterAttributes.autoUpdateAction = new Action<Task>(_ => LoadAttributes());
+            characterAttributes.PageUpdated += CharacterAttributes_PageUpdated;
+        }
+
+        private void CharacterAttributes_PageUpdated(object page)
+        {
+            IssueUpdate(PilotEvent.AttributesUpdate);
+        }
+
+        private void CharacterSheet_PageUpdated(object page)
+        {
+            IssueUpdate(PilotEvent.CharacterSheetUpdate);
         }
 
         public class CharacterSheetPage : ESIPage
@@ -131,26 +140,8 @@ namespace EVE_All_API
 
         public void LoadImage(int size)
         {
-            pilotImage = ImageManager.getCharacterImage(characterID, size);
+            pilotImage = ImageManager.GetCharacterImage(characterID, size);
             IssueUpdate(PilotEvent.ImageLoaded);
-        }
-
-        public void LoadCharacterSheet()
-        {
-            JSON.JSONResponse resp = characterSheet.GetPage();
-            if (resp?.httpCode == System.Net.HttpStatusCode.OK)
-            {
-                IssueUpdate(PilotEvent.CharacterSheetUpdate);
-            }
-        }
-
-        public void LoadAttributes()
-        {
-            JSON.JSONResponse resp = characterAttributes.GetPage(characterID);
-            if (resp?.httpCode == System.Net.HttpStatusCode.OK)
-            {
-                IssueUpdate(PilotEvent.AttributesUpdate);
-            }
         }
 
     }

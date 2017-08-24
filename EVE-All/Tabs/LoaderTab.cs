@@ -24,36 +24,37 @@ namespace EVE_All.Tabs
         private int loaderPercent = 0;
         private int imagePercent = 0;
         private DateTime start;
-        public event EventHandler loadingComplete;
-        public class LoaderArgs : System.EventArgs
+        public event EventHandler LoadingComplete;
+        public class LoaderArgs : EventArgs
         {
             public bool loaderSuccess = false;
             public bool imageSuccess = false;
             public string errorTxt = null;
         }
 
-        private void onLoadingComplete()
+        private void OnLoadingComplete()
         {
             if(!loaderComplete || !imageComplete)
             {
                 return;
             }
             System.Diagnostics.Debug.WriteLine("Loaded in " + (DateTime.Now - start).ToString());
-            EventHandler handler = loadingComplete;
+            EventHandler handler = LoadingComplete;
             if(handler != null)
             {
-                LoaderArgs args = new LoaderArgs();
-                args.loaderSuccess = loaderSuccess;
-                args.imageSuccess = imageSuccess;
-                args.errorTxt = (loaderErr == null ? "" : loaderErr);
-                args.errorTxt += (imageErr == null ? "" : imageErr);
+                LoaderArgs args = new LoaderArgs()
+                {
+                    loaderSuccess = loaderSuccess,
+                    imageSuccess = imageSuccess,
+                    errorTxt = (loaderErr ?? "") + (imageErr ?? "")
+                };
                 handler(this, args);
             }
             // Close the loader.
             Hide();
         }
 
-        private void loadWorker_DoWork(object sender, DoWorkEventArgs e)
+        private void LoadWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             // Load static data.
             string err = Loader.LoadYAML(loadWorker, 0, 100);
@@ -65,7 +66,7 @@ namespace EVE_All.Tabs
             loadWorker.ReportProgress(100, "YAML loading compete.");
         }
 
-        private void loadWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void LoadWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             loaderComplete = true;
             if (e.Cancelled)
@@ -73,7 +74,7 @@ namespace EVE_All.Tabs
                 MessageBox.Show("Load cancled by user request. Closing...", "Init error", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 loaderSuccess = false;
                 loaderErr = null;
-                onLoadingComplete();
+                OnLoadingComplete();
                 imageWorker.CancelAsync();
                 return;
             }
@@ -83,7 +84,7 @@ namespace EVE_All.Tabs
                 MessageBox.Show("Error: (" + err + "). Closing...", "Init error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 loaderSuccess = false;
                 loaderErr = err;
-                onLoadingComplete();
+                OnLoadingComplete();
                 imageWorker.CancelAsync();
                 return;
             }
@@ -91,11 +92,11 @@ namespace EVE_All.Tabs
             {
                 loaderSuccess = true;
                 loaderErr = null;
-                onLoadingComplete();
+                OnLoadingComplete();
             }
         }
 
-        private void loadWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void LoadWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             loaderPercent = e.ProgressPercentage;
             int totalPercent = Math.Min(loaderPercent, imagePercent);
@@ -132,7 +133,7 @@ namespace EVE_All.Tabs
         private void ImageWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             // Load static data.
-            string err = ImageManager.preloadImages(imageWorker);
+            string err = ImageManager.PreloadImages(imageWorker);
             if (err != null)
             {
                 e.Cancel = true;
@@ -176,7 +177,7 @@ namespace EVE_All.Tabs
                 MessageBox.Show("Load cancled by user request. Closing...", "Init error", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 imageSuccess = false;
                 imageErr = null;
-                onLoadingComplete();
+                OnLoadingComplete();
                 loadWorker.CancelAsync();
                 return;
             }
@@ -186,7 +187,7 @@ namespace EVE_All.Tabs
                 MessageBox.Show("Error: (" + err + "). Closing...", "Init error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 imageSuccess = false;
                 imageErr = err;
-                onLoadingComplete();
+                OnLoadingComplete();
                 loadWorker.CancelAsync();
                 return;
             }
@@ -194,7 +195,7 @@ namespace EVE_All.Tabs
             {
                 imageSuccess = true;
                 imageErr = null;
-                onLoadingComplete();
+                OnLoadingComplete();
             }
         }
 

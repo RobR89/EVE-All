@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
 using System.IO.Compression;
 using System.ComponentModel;
@@ -22,11 +19,11 @@ namespace EVE_All_API
         /// <param name="characterID">The characterID of the character.</param>
         /// <param name="size">The size of the image in pixels.</param>
         /// <returns>The image or null if not found.</returns>
-        public static Image getCharacterImage(long characterID, int size)
+        public static Image GetCharacterImage(long characterID, int size)
         {
             // 32, 64, 128, 256, 512, 1024
             string imageFile = "character/" + characterID.ToString() + "_" + size.ToString() + ".jpg";
-            return getImage(imageFile);
+            return GetImage(imageFile);
         }
 
         /// <summary>
@@ -35,11 +32,11 @@ namespace EVE_All_API
         /// <param name="corporationID">The corporationID of the corporation.</param>
         /// <param name="size">The size of the image in pixels.</param>
         /// <returns>The image or null if not found.</returns>
-        public static Image getCorporationImage(long corporationID, int size)
+        public static Image GetCorporationImage(long corporationID, int size)
         {
             // 32, 64, 128, 256
             string imageFile = "corporation/" + corporationID.ToString() + "_" + size.ToString() + ".png";
-            return getImage(imageFile);
+            return GetImage(imageFile);
         }
 
         /// <summary>
@@ -48,11 +45,11 @@ namespace EVE_All_API
         /// <param name="allianceID">The allianceID of the alliance.</param>
         /// <param name="size">The size of the image in pixels.</param>
         /// <returns>The image or null if not found.</returns>
-        public static Image getAllianceImage(long allianceID, int size)
+        public static Image GetAllianceImage(long allianceID, int size)
         {
             // 32, 64, 128
             string imageFile = "alliance/" + allianceID.ToString() + "_" + size.ToString() + ".png";
-            return getImage(imageFile);
+            return GetImage(imageFile);
         }
 
         /// <summary>
@@ -61,11 +58,11 @@ namespace EVE_All_API
         /// <param name="factionID">The factionID of the faction.</param>
         /// <param name="size">The size of the image in pixels.</param>
         /// <returns>The image or null if not found.</returns>
-        public static Image getFactionImage(long factionID, int size)
+        public static Image GetFactionImage(long factionID, int size)
         {
             // 32, 64, 128
             string imageFile = "faction/" + factionID.ToString() + "_" + size.ToString() + ".png";
-            return getImage(imageFile);
+            return GetImage(imageFile);
         }
 
         /// <summary>
@@ -75,7 +72,7 @@ namespace EVE_All_API
         /// <param name="size">The size of the image in pixels.</param>
         /// <param name="cachedOnly">True if only cached images should be retrieved.</param>
         /// <returns>The image or null if not found.</returns>
-        public static Image getTypeImage(long typeID, int size, bool cachedOnly = false)
+        public static Image GetTypeImage(long typeID, int size, bool cachedOnly = false)
         {
             // 32, 64
             string imageFile = "type/" + typeID.ToString() + "_" + size.ToString() + ".png";
@@ -89,7 +86,7 @@ namespace EVE_All_API
                     return images[zipImageFile];
                 }
                 // No, load images.
-                Image img = getImageFromZIP(UserData.typeIconZip, zipImageFile);
+                Image img = GetImageFromZIP(UserData.typeIconZip, zipImageFile);
                 if(img != null)
                 {
                     images[zipImageFile] = img;
@@ -100,7 +97,7 @@ namespace EVE_All_API
             {
                 return null;
             }
-            return getImage(imageFile);
+            return GetImage(imageFile);
         }
 
         /// <summary>
@@ -109,11 +106,11 @@ namespace EVE_All_API
         /// <param name="typeID">The typeID of the ship or drone.</param>
         /// <param name="size">The size of the image in pixels.</param>
         /// <returns>The image or null if not found.</returns>
-        public static Image getRenderImage(long typeID, int size)
+        public static Image GetRenderImage(long typeID, int size)
         {
             // 32, 64, 128, 256, 512
             string imageFile = "render/" + typeID.ToString() + "_" + size.ToString() + ".png";
-            return getImage(imageFile);
+            return GetImage(imageFile);
         }
 
         /// <summary>
@@ -121,7 +118,7 @@ namespace EVE_All_API
         /// </summary>
         /// <param name="typeID">The typeID of the ship or drone.</param>
         /// <returns>The image or null if not found.</returns>
-        public static Image getRenderImage(long typeID)
+        public static Image GetRenderImage(long typeID)
         {
             // 32, 64, 128, 256, 512
             if (UserData.renderZip?.Length > 0)
@@ -134,7 +131,7 @@ namespace EVE_All_API
                     return images[zipImageFile];
                 }
                 // No, load images.
-                Image img = getImageFromZIP(UserData.renderZip, zipImageFile);
+                Image img = GetImageFromZIP(UserData.renderZip, zipImageFile);
                 if (img != null)
                 {
                     images[zipImageFile] = img;
@@ -149,7 +146,7 @@ namespace EVE_All_API
         /// </summary>
         /// <param name="iconID">The iconID of the image to get.</param>
         /// <returns>The image or null if not found.</returns>
-        public static Image getIconImage(int iconID)
+        public static Image GetIconImage(int iconID)
         {
             IconID icon = IconID.GetIconID(iconID);
             if(icon == null)
@@ -168,7 +165,7 @@ namespace EVE_All_API
                     return images[iconFile];
                 }
                 // No, load images.
-                Image img = getImageFromZIP(UserData.iconsZip, iconFile);
+                Image img = GetImageFromZIP(UserData.iconsZip, iconFile);
                 if (img != null)
                 {
                     images[iconFile] = img;
@@ -183,7 +180,7 @@ namespace EVE_All_API
         /// </summary>
         /// <param name="imageFile">The image to get.</param>
         /// <returns>The fetched image.</returns>
-        public static Image getImage(string imageFile)
+        public static Image GetImage(string imageFile)
         {
             // Has the image been loaded?
             if (images.ContainsKey(imageFile))
@@ -211,7 +208,7 @@ namespace EVE_All_API
                 if (img == null)
                 {
                     // We still need the imgae, try getting it from the server.
-                    img = getImageFromURL(imageFile);
+                    img = GetImageFromURL(imageFile);
                     if (img != null)
                     {
                         // We got the image cache it.
@@ -230,7 +227,7 @@ namespace EVE_All_API
                 return img;
             }
             // Fall back to getting the image from the url.
-            img = getImageFromURL(imageFile);
+            img = GetImageFromURL(imageFile);
             if (img != null)
             {
                 images[imageFile] = img;
@@ -238,7 +235,7 @@ namespace EVE_All_API
             return img;
         }
 
-        private static Image getImageFromURL(string imageFile)
+        private static Image GetImageFromURL(string imageFile)
         {
             WebClient wc = new WebClient();
             byte[] bytes = null;
@@ -255,7 +252,7 @@ namespace EVE_All_API
             return img;
         }
 
-        private static Image getImageFromZIP(string zipFile, string imageFile)
+        private static Image GetImageFromZIP(string zipFile, string imageFile)
         {
             if (zipFile != null && File.Exists(zipFile))
             {
@@ -287,7 +284,7 @@ namespace EVE_All_API
         }
 
         #region preloading
-        public static string preloadImages(BackgroundWorker worker)
+        public static string PreloadImages(BackgroundWorker worker)
         {
             if (UserData.typeIconZip == null || UserData.typeIconZip?.Length == 0)
             {

@@ -64,14 +64,14 @@
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             this.optionsToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.optionsToolStripMenuItem.Text = "&Options";
-            this.optionsToolStripMenuItem.Click += new System.EventHandler(this.optionsToolStripMenuItem_Click);
+            this.optionsToolStripMenuItem.Click += new System.EventHandler(this.OptionsToolStripMenuItem_Click);
             // 
             // loginToCharacterToolStripMenuItem
             // 
             this.loginToCharacterToolStripMenuItem.Name = "loginToCharacterToolStripMenuItem";
             this.loginToCharacterToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.loginToCharacterToolStripMenuItem.Text = "Login to Character";
-            this.loginToCharacterToolStripMenuItem.Click += new System.EventHandler(this.loginToCharacterToolStripMenuItem_Click);
+            this.loginToCharacterToolStripMenuItem.Click += new System.EventHandler(this.LoginToCharacterToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
@@ -83,7 +83,7 @@
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.exitToolStripMenuItem.Text = "E&xit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
             // tabs
             // 

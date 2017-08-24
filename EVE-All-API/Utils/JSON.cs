@@ -93,6 +93,10 @@ namespace EVE_All_API
             {
                 response = (HttpWebResponse)e.Response;
             }
+            if(response == null)
+            {
+                return null;
+            }
             resp.httpCode = response.StatusCode;
             if (response.StatusCode == HttpStatusCode.OK)
             {
