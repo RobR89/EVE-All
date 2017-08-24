@@ -1,14 +1,11 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace EVE_All_API

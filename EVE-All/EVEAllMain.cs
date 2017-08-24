@@ -1,9 +1,7 @@
 ﻿using EVE_All.Tabs;
 using EVE_All_API;
 using EVE_All_API.ESI;
-using EVE_All_API.StaticData;
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.IO;
