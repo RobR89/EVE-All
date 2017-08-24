@@ -17,7 +17,6 @@ namespace EVE_All_API
         {
             public string fileName;
             public Func<YamlStream, bool> funct;
-            public YamlStream stream = null;
             public string err = null;
             public bool complete = false;
 
@@ -30,17 +29,8 @@ namespace EVE_All_API
                 worker.RunWorkerAsync();
             }
 
-            public LoadYamlItem(YamlStream _stream, Func<YamlStream, bool> _funct)
-            {
-                fileName = null;
-                funct = _funct;
-                stream = _stream;
-            }
-
             private void Worker_DoWork(object sender, DoWorkEventArgs e)
             {
-                // Load Region IDs.
-                Universe.GetRegions();
                 // Load YAML files.
                 YamlStream yaml = null;
                 StreamReader reader = null;
@@ -69,11 +59,6 @@ namespace EVE_All_API
                     // Parse the file.
                     funct(yaml);
                     complete = true;
-                }
-                else
-                {
-                    // Keep the file for later processing.
-                    stream = yaml;
                 }
             }
         }
@@ -156,6 +141,39 @@ namespace EVE_All_API
         /// <returns>The error message or null on success.</returns>
         public static string LoadYAML(BackgroundWorker worker, int start, int portion)
         {
+            bool solarSystemsCached = false;
+            string solarSystemCacheFile = UserData.cachePath + Path.GetFileName(UserData.sdeZip) + ".SolarSystems.Cache";
+            if(File.Exists(solarSystemCacheFile))
+            {
+                if (worker != null && !worker.CancellationPending)
+                {
+                    // Updatee the worker status.
+                    worker.ReportProgress(start, "Loading cached files...");
+                }
+                try
+                {
+                    using (FileStream file = new FileStream(solarSystemCacheFile, FileMode.Open))
+                    {
+                        using (BinaryReader load = new BinaryReader(file))
+                        {
+                            bool success = SolarSystem.LoadAll(load);
+                            success &= Stargate.LoadAll(load);
+                            success &= OrbitalBody.LoadAll(load);
+                            success &= NPCStation.LoadAll(load);
+                            if (success)
+                            {
+                                // Successfully loaded cache.
+                                solarSystemsCached = true;
+                            }
+                        }
+                    }
+                }
+                catch(Exception)
+                {
+                    // An error occured, we should delete the file it appears corrupted.
+                    File.Delete(solarSystemCacheFile);
+                }
+            }
             baseComplete = false;
             List<string> solarSystemFiles = new List<string>();
             if (File.Exists(UserData.sdeZip))
@@ -165,7 +183,7 @@ namespace EVE_All_API
                 foreach (ZipArchiveEntry zipFile in zip.Entries)
                 {
                     string fName = zipFile.FullName;
-                    bool isSystem = fName.EndsWith("solarsystem.staticdata");
+                    bool isSystem = fName.EndsWith("solarsystem.staticdata") && !solarSystemsCached;
                     if (fName.EndsWith(".yaml") || isSystem)
                     {
                         MemoryStream memStream = new MemoryStream();
@@ -194,7 +212,6 @@ namespace EVE_All_API
             {
                 while (yamlFiles.Count < 40 && solarSystemFiles.Count > 0 && cnt >= baseFiles)
                 {
-                    baseComplete = true;
                     // Start loading some files.
                     string solarSystemFile = solarSystemFiles[0];
                     yamlFiles.Add(new LoadYamlItem(solarSystemFile, SolarSystem.LoadYAML));
@@ -205,16 +222,6 @@ namespace EVE_All_API
                 {
                     if (item.complete == false)
                     {
-                        if (item.err != null)
-                        {
-                            // There was an error.
-                            return item.err;
-                        }
-                        if (item.stream == null)
-                        {
-                            // This file still not loaded.
-                            continue;
-                        }
                         if (worker != null)
                         {
                             // We are using a worker, check for cancel.
@@ -223,15 +230,20 @@ namespace EVE_All_API
                                 return "Cancled by user request.";
                             }
                         }
-                        // Call the parsing function.
-                        if (!item.funct(item.stream))
+                        if (item.err != null)
                         {
                             // There was an error.
-                            return "Error loading: " + item.fileName;
+                            return item.err;
                         }
+                        // This file still not loaded.
+                        continue;
                     }
                     // Increment out count and remove the item.
                     cnt++;
+                    if(cnt >= baseFiles)
+                    {
+                        baseComplete = true;
+                    }
                     yamlFiles.Remove(item);
                     if (worker != null && !worker.CancellationPending && ((cnt % 10) == 0 || cnt < 20))
                     {
@@ -243,7 +255,104 @@ namespace EVE_All_API
                 }
             }
             zipFiles.Clear();
+            // Save cache
+            if (!solarSystemsCached)
+            {
+                using (FileStream mem = new FileStream(solarSystemCacheFile, FileMode.Create))
+                {
+                    using (BinaryWriter save = new BinaryWriter(mem))
+                    {
+                        SolarSystem.SaveAll(save);
+                        Stargate.SaveAll(save);
+                        OrbitalBody.SaveAll(save);
+                        NPCStation.SaveAll(save);
+                        //byte[] ary = mem.ToArray();
+                    }
+                }
+            }
             return null;
+        }
+
+        public static void Save(List<int> list, BinaryWriter save)
+        {
+            if(list == null)
+            {
+                save.Write((int)-1);
+                return;
+            }
+            save.Write(list.Count);
+            foreach (int i in list)
+            {
+                save.Write(i);
+            }
+        }
+
+        public static bool Load(out List<int> values, BinaryReader load)
+        {
+            int cnt = load.ReadInt32();
+            if(cnt == -1)
+            {
+                values = null;
+                return true;
+            }
+            values = new List<int>();
+            for (int i = 0; i < cnt;i++)
+            {
+                values.Add(load.ReadInt32());
+            }
+            return true;
+        }
+
+        public static void Save(List<long> list, BinaryWriter save)
+        {
+            if (list == null)
+            {
+                save.Write((int)-1);
+                return;
+            }
+            save.Write(list.Count);
+            foreach (long i in list)
+            {
+                save.Write(i);
+            }
+        }
+
+        public static bool Load(out List<long> values, BinaryReader load)
+        {
+            int cnt = load.ReadInt32();
+            if (cnt == -1)
+            {
+                values = null;
+                return true;
+            }
+            values = new List<long>();
+            for (int i = 0; i < cnt; i++)
+            {
+                values.Add(load.ReadInt64());
+            }
+            return true;
+        }
+
+        public static void Save(string value, BinaryWriter save)
+        {
+            if (value == null)
+            {
+                save.Write(false);
+                return;
+            }
+            save.Write(true);
+            save.Write(value);
+        }
+
+        public static bool Load(out string value, BinaryReader load)
+        {
+            if (!load.ReadBoolean())
+            {
+                value = null;
+                return true;
+            }
+            value = load.ReadString();
+            return true;
         }
 
     }

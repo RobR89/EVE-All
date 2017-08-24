@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 
 namespace EVE_All_API.StaticData
@@ -8,6 +9,13 @@ namespace EVE_All_API.StaticData
         public readonly double x;
         public readonly double y;
         public readonly double z;
+
+        public Location(BinaryReader load)
+        {
+            x = load.ReadDouble();
+            y = load.ReadDouble();
+            z = load.ReadDouble();
+        }
 
         private Location(double _x, double _y, double _z)
         {
@@ -31,6 +39,13 @@ namespace EVE_All_API.StaticData
                 }
             }
             return null;
+        }
+
+        public void Save(BinaryWriter save)
+        {
+            save.Write(x);
+            save.Write(y);
+            save.Write(z);
         }
 
     }

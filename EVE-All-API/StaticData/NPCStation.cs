@@ -1,15 +1,76 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 
 namespace EVE_All_API.StaticData
 {
     public class NPCStation
     {
+        #region caching
+        public static void SaveAll(BinaryWriter save)
+        {
+            lock (stations)
+            {
+                save.Write(stations.Count);
+                foreach (NPCStation station in stations.Values)
+                {
+                    station.Save(save);
+                }
+            }
+        }
+
+        public static bool LoadAll(BinaryReader load)
+        {
+            lock (stations)
+            {
+                int count = load.ReadInt32();
+                for (int i = 0; i < count; i++)
+                {
+                    NPCStation station = new NPCStation(load);
+                    stations[station.stationID] = station;
+                }
+            }
+            return true;
+        }
+
+        public void Save(BinaryWriter save)
+        {
+            save.Write(stationID);
+            save.Write(solarSystemID);
+            save.Write(graphicID);
+            save.Write(isConquerable);
+            save.Write(operationID);
+            save.Write(ownerID);
+            position.Save(save);
+            save.Write(reprocessingEfficiency);
+            save.Write(reprocessingHangarFlag);
+            save.Write(reprocessingStationsTake);
+            save.Write(typeID);
+            save.Write(useOperationName);
+        }
+
+        private NPCStation(BinaryReader load)
+        {
+            stationID = load.ReadInt64();
+            solarSystemID = load.ReadInt32();
+            graphicID = load.ReadInt32();
+            isConquerable = load.ReadBoolean();
+            operationID = load.ReadInt32();
+            ownerID = load.ReadInt32();
+            position = new Location(load);
+            reprocessingEfficiency = load.ReadDouble();
+            reprocessingHangarFlag = load.ReadInt32();
+            reprocessingStationsTake = load.ReadDouble();
+            typeID = load.ReadInt32();
+            useOperationName = load.ReadBoolean();
+        }
+        #endregion caching
+
         private static Dictionary<long, NPCStation> stations = new Dictionary<long, NPCStation>();
         public static NPCStation GetNPCStation(long _stationID)
         {
-            lock(stations)
+            lock (stations)
             {
                 if (stations.ContainsKey(_stationID))
                 {

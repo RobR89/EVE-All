@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using YamlDotNet.RepresentationModel;
 
@@ -7,6 +8,109 @@ namespace EVE_All_API.StaticData
 {
     public class SolarSystem
     {
+        #region caching
+        public static void SaveAll(BinaryWriter save)
+        {
+            lock (solarSystems)
+            {
+                save.Write(solarSystems.Count);
+                foreach (SolarSystem system in solarSystems.Values)
+                {
+                    system.Save(save);
+                }
+            }
+        }
+
+        public static bool LoadAll(BinaryReader load)
+        {
+            lock (solarSystems)
+            {
+                int count = load.ReadInt32();
+                for (int i = 0; i < count; i++)
+                {
+                    SolarSystem system = new SolarSystem(load);
+                    solarSystems[system.solarSystemID] = system;
+                }
+            }
+            return true;
+        }
+
+        public void Save(BinaryWriter save)
+        {
+            save.Write(solarSystemID);
+            save.Write(solarSystemNameID);
+            save.Write(regional);
+            save.Write(border);
+            save.Write(corridor);
+            save.Write(fringe);
+            save.Write(hub);
+            save.Write(international);
+            save.Write(luminosity);
+            save.Write(radius);
+            save.Write(security);
+            save.Write(sunTypeID);
+            center.Save(save);
+            max.Save(save);
+            min.Save(save);
+            Loader.Save(securityClass, save);
+            save.Write(wormholeClassID);
+            Loader.Save(disallowedAnchorCategories, save);
+            save.Write(descriptionID);
+            save.Write(factionID);
+            Loader.Save(stargates, save);
+            Loader.Save(planets, save);
+            star.Save(save);
+            if(secondarySun == null)
+            {
+                save.Write(false);
+            }
+            else
+            {
+                save.Write(true);
+                secondarySun.Save(save);
+            }
+            Loader.Save(visualEffect, save);
+            Loader.Save(disallowedAnchorGroups, save);
+        }
+
+        private SolarSystem(BinaryReader load)
+        {
+            solarSystemID = load.ReadInt32();
+            solarSystemNameID = load.ReadInt32();
+            regional = load.ReadBoolean();
+            border = load.ReadBoolean();
+            corridor = load.ReadBoolean();
+            fringe = load.ReadBoolean();
+            hub = load.ReadBoolean();
+            international = load.ReadBoolean();
+            luminosity = load.ReadDouble();
+            radius = load.ReadDouble();
+            security = load.ReadDouble();
+            sunTypeID = load.ReadInt32();
+            center = new Location(load);
+            max = new Location(load);
+            min = new Location(load);
+            Loader.Load(out securityClass, load);
+            wormholeClassID = load.ReadInt32();
+            Loader.Load(out disallowedAnchorCategories, load);
+            descriptionID = load.ReadInt32();
+            factionID = load.ReadInt32();
+            Loader.Load(out stargates, load);
+            Loader.Load(out planets, load);
+            star = new Star(load);
+            if (load.ReadBoolean())
+            {
+                secondarySun = new SecondarySun(load);
+            }
+            else
+            {
+                secondarySun = null;
+            }
+            Loader.Load(out visualEffect, load);
+            Loader.Load(out disallowedAnchorGroups, load);
+        }
+        #endregion caching
+
         private static Dictionary<int, SolarSystem> solarSystems = new Dictionary<int, SolarSystem>();
         public static SolarSystem GetSystem(int _solarSystemID)
         {
@@ -302,7 +406,7 @@ namespace EVE_All_API.StaticData
             // Find the shortest path.
             pp = FindShortest(pp, highSec);
             // Check results.
-            if(pp == null)
+            if (pp == null)
             {
                 // No path found.
                 if (highSec)
@@ -323,7 +427,7 @@ namespace EVE_All_API.StaticData
             while (pp.distance > 0)
             {
                 // Check that the system has jumps.
-                if(!systemDestinations.ContainsKey(pp.currentSystemID))
+                if (!systemDestinations.ContainsKey(pp.currentSystemID))
                 {
                     // Error, system not found.
                     return null;
@@ -362,7 +466,7 @@ namespace EVE_All_API.StaticData
                     {
                         // Add next point in path.
                         pp.currentSystemID = dest;
-                        if(pp.path.Contains(pp.currentSystemID))
+                        if (pp.path.Contains(pp.currentSystemID))
                         {
                             // We have somehow looped back on ourself.
                             return null;
@@ -394,17 +498,17 @@ namespace EVE_All_API.StaticData
                         npp.path.Add(npp.currentSystemID);
                         // Find the shortest distance if this option is taken.
                         npp = FindShortest(npp, highSec);
-                        if(spp == null)
+                        if (spp == null)
                         {
                             // First successful path, keep it.
                             spp = npp;
                         }
                         else
                         {
-                            if(npp != null)
+                            if (npp != null)
                             {
                                 // Another successful path, is it shorter?
-                                if(npp.path.Count < spp.path.Count)
+                                if (npp.path.Count < spp.path.Count)
                                 {
                                     // Yes!  Keep it.
                                     spp = npp;
@@ -445,7 +549,7 @@ namespace EVE_All_API.StaticData
                 int distance = distanceMap[_solarSystemID] + 1;
                 // Iterate the gates in this system.
                 List<int> gateSystems = new List<int>();
-                if(!systemDestinations.ContainsKey(system.solarSystemID))
+                if (!systemDestinations.ContainsKey(system.solarSystemID))
                 {
                     // No jumps in this system.
                     continue;

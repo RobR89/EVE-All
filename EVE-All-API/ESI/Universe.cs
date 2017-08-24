@@ -7,7 +7,10 @@ namespace EVE_All_API.ESI
         private static RegionList regionList = new RegionList();
         public static List<int> GetRegions()
         {
-            return new List<int>(regionList.items);
+            lock (regionList)
+            {
+                return new List<int>(regionList.items);
+            }
         }
         private class RegionList : ESIList<int>
         {
@@ -21,9 +24,12 @@ namespace EVE_All_API.ESI
 
             private void RegionList_PageUpdated(object page)
             {
-                foreach(int regionID in items)
+                lock (regionList)
                 {
-                    GetRegion(regionID);
+                    foreach (int regionID in items)
+                    {
+                        GetRegion(regionID);
+                    }
                 }
             }
         }

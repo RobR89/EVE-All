@@ -61,6 +61,9 @@ namespace EVE_All
 
             InitializeComponent();
 
+            // Load Region IDs.
+            Universe.GetRegions();
+
             // Check for existance of SDE files. Open dialog if they cannot be found.
             while (UserData.sdeZip == null || !File.Exists(UserData.sdeZip))
             {

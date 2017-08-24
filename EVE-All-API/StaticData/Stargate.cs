@@ -1,11 +1,58 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 
 namespace EVE_All_API.StaticData
 {
     public class Stargate
     {
+        #region caching
+        public static void SaveAll(BinaryWriter save)
+        {
+            lock (stargates)
+            {
+                save.Write(stargates.Count);
+                foreach (Stargate gate in stargates.Values)
+                {
+                    gate.Save(save);
+                }
+            }
+        }
+
+        public static bool LoadAll(BinaryReader load)
+        {
+            lock (stargates)
+            {
+                int count = load.ReadInt32();
+                for (int i = 0; i < count; i++)
+                {
+                    Stargate gate = new Stargate(load);
+                    stargates[gate.stargateID] = gate;
+                }
+            }
+            return true;
+        }
+
+        public void Save(BinaryWriter save)
+        {
+            save.Write(stargateID);
+            save.Write(solarSystemID);
+            save.Write(destination);
+            save.Write(typeID);
+            position.Save(save);
+        }
+
+        public Stargate(BinaryReader load)
+        {
+            stargateID = load.ReadInt32();
+            solarSystemID = load.ReadInt32();
+            destination = load.ReadInt32();
+            typeID = load.ReadInt32();
+            position = new Location(load);
+        }
+        #endregion caching
+
         private static Dictionary<int, Stargate> stargates = new Dictionary<int, Stargate>();
         public static Stargate GetStargate(int _gateID)
         {

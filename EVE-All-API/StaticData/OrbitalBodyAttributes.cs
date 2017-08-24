@@ -1,10 +1,29 @@
 ﻿using System;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 
 namespace EVE_All_API.StaticData
 {
     public class OrbitalBodyAttributes
     {
+        #region caching
+        public void Save(BinaryWriter save)
+        {
+            save.Write(heightMap1);
+            save.Write(heightMap2);
+            save.Write(population);
+            save.Write(shaderPreset);
+        }
+
+        public OrbitalBodyAttributes(BinaryReader load)
+        {
+            heightMap1 = load.ReadInt32();
+            heightMap2 = load.ReadInt32();
+            population = load.ReadBoolean();
+            shaderPreset = load.ReadInt32();
+        }
+        #endregion caching
+
         public readonly int heightMap1;
         public readonly int heightMap2;
         public readonly bool population;

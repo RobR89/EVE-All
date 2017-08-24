@@ -1,10 +1,52 @@
 ﻿using System;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 
 namespace EVE_All_API.StaticData
 {
     public class OrbitalBodyStatistics
     {
+        #region caching
+        public void Save(BinaryWriter save)
+        {
+            save.Write(density);
+            save.Write(eccentricity);
+            save.Write(escapeVelocity);
+            save.Write(fragmented);
+            save.Write(life);
+            save.Write(locked);
+            save.Write(massDust);
+            save.Write(massGas);
+            save.Write(orbitPeriod);
+            save.Write(orbitRadius);
+            save.Write(pressure);
+            save.Write(radius);
+            save.Write(rotationRate);
+            save.Write(spectralClass);
+            save.Write(surfaceGravity);
+            save.Write(temperature);
+        }
+
+        public OrbitalBodyStatistics(BinaryReader load)
+        {
+            density = load.ReadDouble();
+            eccentricity = load.ReadDouble();
+            escapeVelocity = load.ReadDouble();
+            fragmented = load.ReadBoolean();
+            life = load.ReadDouble();
+            locked = load.ReadBoolean();
+            massDust = load.ReadDouble();
+            massGas = load.ReadDouble();
+            orbitPeriod = load.ReadDouble();
+            orbitRadius = load.ReadDouble();
+            pressure = load.ReadDouble();
+            radius = load.ReadDouble();
+            rotationRate = load.ReadDouble();
+            spectralClass = load.ReadString();
+            surfaceGravity = load.ReadDouble();
+            temperature = load.ReadDouble();
+        }
+        #endregion caching
 
         public readonly double density;
         public readonly double eccentricity;

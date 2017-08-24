@@ -1,10 +1,46 @@
 ﻿using System;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 
 namespace EVE_All_API.StaticData
 {
     public class Star
     {
+        #region caching
+        public void Save(BinaryWriter save)
+        {
+            save.Write(starID);
+            save.Write(solarSystemID);
+            save.Write(radius);
+            save.Write(typeID);
+            if (statistics == null)
+            {
+                save.Write(false);
+            }
+            else
+            {
+                save.Write(true);
+                statistics.Save(save);
+            }
+        }
+
+        public Star(BinaryReader load)
+        {
+            starID = load.ReadInt32();
+            solarSystemID = load.ReadInt32();
+            radius = load.ReadDouble();
+            typeID = load.ReadInt32();
+            if (load.ReadBoolean())
+            {
+                statistics = new StarStatistics(load);
+            }
+            else
+            {
+                statistics = null;
+            }
+        }
+        #endregion caching
+
         public readonly int starID;
         public readonly int solarSystemID;
         public readonly double radius;
@@ -41,6 +77,30 @@ namespace EVE_All_API.StaticData
 
         public class StarStatistics
         {
+            #region caching
+            public void Save(BinaryWriter save)
+            {
+                save.Write(age);
+                save.Write(life);
+                save.Write(locked);
+                save.Write(luminosity);
+                save.Write(radius);
+                save.Write(spectralClass);
+                save.Write(temperature);
+            }
+
+            public StarStatistics(BinaryReader load)
+            {
+                age = load.ReadDouble();
+                life = load.ReadDouble();
+                locked = load.ReadBoolean();
+                luminosity = load.ReadDouble();
+                radius = load.ReadDouble();
+                spectralClass = load.ReadString();
+                temperature = load.ReadDouble();
+            }
+            #endregion caching
+
             public readonly double age;
             public readonly double life;
             public readonly bool locked;

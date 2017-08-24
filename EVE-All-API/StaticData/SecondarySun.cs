@@ -1,10 +1,31 @@
 ﻿using System;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 
 namespace EVE_All_API.StaticData
 {
     public class SecondarySun
     {
+        #region caching
+        public void Save(BinaryWriter save)
+        {
+            save.Write(solarSystemID);
+            save.Write(itemID);
+            save.Write(effectBeaconTypeID);
+            save.Write(typeID);
+            position.Save(save);
+        }
+
+        public SecondarySun(BinaryReader load)
+        {
+            solarSystemID = load.ReadInt32();
+            itemID = load.ReadInt32();
+            effectBeaconTypeID = load.ReadInt32();
+            typeID = load.ReadInt32();
+            position = new Location(load);
+        }
+        #endregion caching
+
         public readonly int solarSystemID;
         public readonly int itemID;
         public readonly int effectBeaconTypeID;
