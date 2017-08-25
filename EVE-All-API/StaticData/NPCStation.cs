@@ -64,10 +64,6 @@ namespace EVE_All_API.StaticData
             reprocessingStationsTake = load.ReadDouble();
             typeID = load.ReadInt32();
             useOperationName = load.ReadBoolean();
-            lock (stations)
-            {
-                stations[stationID] = this;
-            }
         }
         #endregion caching
 

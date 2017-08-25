@@ -50,10 +50,6 @@ namespace EVE_All_API.StaticData
             destination = load.ReadInt32();
             typeID = load.ReadInt32();
             position = new Location(load);
-            lock (stargates)
-            {
-                stargates[stargateID] = this;
-            }
         }
         #endregion caching
 

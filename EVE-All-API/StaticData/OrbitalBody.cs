@@ -94,10 +94,6 @@ namespace EVE_All_API.StaticData
             Loader.Load(out moons, load);
             Loader.Load(out stations, load);
             Loader.Load(out asteroidBelts, load);
-            lock (orbitalBodies)
-            {
-                orbitalBodies[orbitalBodyID] = this;
-            }
         }
         #endregion caching
 
