@@ -108,6 +108,10 @@ namespace EVE_All_API.StaticData
             }
             Loader.Load(out visualEffect, load);
             Loader.Load(out disallowedAnchorGroups, load);
+            lock(solarSystems)
+            {
+                solarSystems[solarSystemID] = this;
+            }
         }
         #endregion caching
 

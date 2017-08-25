@@ -10,10 +10,10 @@ namespace EVE_All_API.StaticData
         #region caching
         public static void SaveAll(BinaryWriter save)
         {
-            lock (planets)
+            lock (orbitalBodies)
             {
-                save.Write(planets.Count);
-                foreach (OrbitalBody planet in planets.Values)
+                save.Write(orbitalBodies.Count);
+                foreach (OrbitalBody planet in orbitalBodies.Values)
                 {
                     planet.Save(save);
                 }
@@ -22,13 +22,13 @@ namespace EVE_All_API.StaticData
 
         public static bool LoadAll(BinaryReader load)
         {
-            lock (planets)
+            lock (orbitalBodies)
             {
                 int count = load.ReadInt32();
                 for (int i = 0; i < count; i++)
                 {
                     OrbitalBody planet = new OrbitalBody(load);
-                    planets[planet.orbitalBodyID] = planet;
+                    orbitalBodies[planet.orbitalBodyID] = planet;
                 }
             }
             return true;
@@ -94,17 +94,21 @@ namespace EVE_All_API.StaticData
             Loader.Load(out moons, load);
             Loader.Load(out stations, load);
             Loader.Load(out asteroidBelts, load);
+            lock (orbitalBodies)
+            {
+                orbitalBodies[orbitalBodyID] = this;
+            }
         }
         #endregion caching
 
-        private static Dictionary<int, OrbitalBody> planets = new Dictionary<int, OrbitalBody>();
+        private static Dictionary<int, OrbitalBody> orbitalBodies = new Dictionary<int, OrbitalBody>();
         public static OrbitalBody GetOrbitalBody(int _planetID)
         {
-            lock(planets)
+            lock(orbitalBodies)
             {
-                if (planets.ContainsKey(_planetID))
+                if (orbitalBodies.ContainsKey(_planetID))
                 {
-                    return planets[_planetID];
+                    return orbitalBodies[_planetID];
                 }
             }
             return null;
@@ -184,9 +188,9 @@ namespace EVE_All_API.StaticData
             {
                 int _planetID = Int32.Parse(entry.Key.ToString());
                 OrbitalBody planet = new OrbitalBody(entry.Value, _planetID, _solarSystemID);
-                lock (planets)
+                lock (orbitalBodies)
                 {
-                    planets[planet.orbitalBodyID] = planet;
+                    orbitalBodies[planet.orbitalBodyID] = planet;
                 }
                 systemPlanets.Add(_planetID);
             }
