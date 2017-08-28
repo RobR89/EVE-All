@@ -8,6 +8,7 @@ using EVE_All_API.StaticData;
 using EVE_All_API;
 using EVE_All_API.ESI;
 using static EVE_All_API.ESI.Market;
+using static EVE_All_API.StaticData.Blueprint;
 
 namespace EVE_All.Tabs
 {
@@ -312,6 +313,8 @@ namespace EVE_All.Tabs
             marketTree.EndUpdate();
         }
 
+        private static List<int> bpGroup = new List<int>() { 2 };
+        private static List<int> bpHasTech1 = new List<int>() { 2 };
         private void PopulateTreeGroups(TreeNodeCollection pNode, ImageList images, List<InvMarketGroup> groups)
         {
             foreach (InvMarketGroup group in groups)
@@ -320,6 +323,47 @@ namespace EVE_All.Tabs
                 {
                     // Skip Infantry gear group.  (Obsolete)
                     continue;
+                }
+                // Check for blueprint groups with no tech 1 bps.
+                if(bpGroup.Contains(group.parentGroupID))
+                {
+                    // A blueprint sub group.
+                    bpGroup.Add(group.marketGroupID);
+                    List<InvType> groupTypes = InvType.GetMarketGroupTypes(group.marketGroupID);
+                    List<InvMarketGroup> subGroups = InvMarketGroup.GetGroupChildren(group.marketGroupID);
+                    while(subGroups.Count > 0)
+                    {
+                        InvMarketGroup subGroup = subGroups[0];
+                        subGroups.Remove(subGroup);
+                        groupTypes.AddRange(InvType.GetMarketGroupTypes(subGroup.marketGroupID));
+                        subGroups.AddRange(InvMarketGroup.GetGroupChildren(subGroup.marketGroupID));
+                    }
+                    bool foundT1 = false;
+                    foreach (InvType type in groupTypes)
+                    {
+                        Blueprint bp = Blueprint.GetType(type.typeID);
+                        if(bp?.manufacturing != null)
+                        {
+                            foreach(ActivityProduct prod in bp.manufacturing.products)
+                            {
+                                if(InvMetaType.GetMetaType(prod.typeID) == null)
+                                {
+                                    bpHasTech1.Add(group.marketGroupID);
+                                    foundT1 = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (foundT1)
+                        {
+                            break;
+                        }
+                    }
+                    if (!bpHasTech1.Contains(group.marketGroupID))
+                    {
+                        // No Tech I so don't list.
+                        continue;
+                    }
                 }
                 // Create the new group node.
                 TreeNode node = pNode.Add(group.marketGroupName);
@@ -352,7 +396,35 @@ namespace EVE_All.Tabs
             groups = groups.OrderBy(g => g.marketGroupName).ToList();
             // Get types for group.
             List<InvType> groupTypes = InvType.GetMarketGroupTypes(groupID);
-            groupTypes = groupTypes.OrderBy(g => g.name).ToList();
+            //groupTypes = groupTypes.OrderBy(g => g.name).ToList();
+            groupTypes.Sort((a, b) =>
+            {
+                InvMetaType mA = InvMetaType.GetMetaType(a.typeID);
+                InvMetaType mB = InvMetaType.GetMetaType(b.typeID);
+                if (mA == null)
+                {
+                    if (mB == null)
+                    {
+                        // Both null, sort by name.
+                        return a.name.CompareTo(b.name);
+                    }
+                    // A is null it goes first.
+                    return -1;
+                }
+                if (mB == null)
+                {
+                    // B is null it goes first.
+                    return 1;
+                }
+                // Neither null, compare by meta level.
+                int cmp = mA.metaGroupID.CompareTo(mB.metaGroupID);
+                if (cmp != 0)
+                {
+                    return cmp;
+                }
+                // Same level, compare by name.
+                return a.name.CompareTo(b.name);
+            });
             // Begin update.
             marketTree.BeginUpdate();
             // Clear the subtree.
