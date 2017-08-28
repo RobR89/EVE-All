@@ -70,6 +70,42 @@ namespace EVE_All_API.StaticData
             return null;
         }
 
+        public static Blueprint GetProduces(int _typeID)
+        {
+            foreach (Blueprint blueprint in blueprints.Values)
+            {
+                if (blueprint.manufacturing != null)
+                {
+                    foreach (ActivityProduct product in blueprint.manufacturing.products)
+                    {
+                        if (product.typeID == _typeID)
+                        {
+                            return blueprint;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        public static Blueprint GetInvents(int _typeID)
+        {
+            foreach (Blueprint blueprint in blueprints.Values)
+            {
+                if (blueprint.invention != null && blueprint.invention.products != null)
+                {
+                    foreach (ActivityProduct product in blueprint.invention.products)
+                    {
+                        if (product.typeID == _typeID)
+                        {
+                            return blueprint;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
         public readonly int blueprintTypeID;
         public readonly int maxProductionLimit;
         public readonly Activity copying;

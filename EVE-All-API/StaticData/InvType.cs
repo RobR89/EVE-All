@@ -104,42 +104,40 @@ namespace EVE_All_API.StaticData
         public static List<InvType> GetGroupTypes(int _groupID)
         {
             // Have we compiled this list before?
-            if (groupTypes.ContainsKey(_groupID))
+            if (!groupTypes.ContainsKey(_groupID))
             {
-                return groupTypes[_groupID];
-            }
-            // No, Create the list.
-            List<InvType> gTypes = new List<InvType>();
-            foreach (var type in types)
-            {
-                if (type.Value.groupID == _groupID)
+                // No, Create the list.
+                List<InvType> gTypes = new List<InvType>();
+                foreach (var type in types)
                 {
-                    gTypes.Add(type.Value);
+                    if (type.Value.groupID == _groupID)
+                    {
+                        gTypes.Add(type.Value);
+                    }
                 }
+                groupTypes[_groupID] = gTypes;
             }
-            groupTypes[_groupID] = gTypes;
-            return gTypes;
+            return new List<InvType>(groupTypes[_groupID]);
         }
 
         private static Dictionary<int, List<InvType>> marketGroupTypes = new Dictionary<int, List<InvType>>();
         public static List<InvType> GetMarketGroupTypes(int _groupID)
         {
             // Have we compiled this list before?
-            if (marketGroupTypes.ContainsKey(_groupID))
+            if (!marketGroupTypes.ContainsKey(_groupID))
             {
-                return marketGroupTypes[_groupID];
-            }
-            // No, Create the list.
-            List<InvType> gTypes = new List<InvType>();
-            foreach (var type in types)
-            {
-                if (type.Value.marketGroupID == _groupID)
+                // No, Create the list.
+                List<InvType> gTypes = new List<InvType>();
+                foreach (var type in types)
                 {
-                    gTypes.Add(type.Value);
+                    if (type.Value.marketGroupID == _groupID)
+                    {
+                        gTypes.Add(type.Value);
+                    }
                 }
+                marketGroupTypes[_groupID] = gTypes;
             }
-            marketGroupTypes[_groupID] = gTypes;
-            return gTypes;
+            return new List<InvType>(marketGroupTypes[_groupID]);
         }
 
         public readonly int typeID;

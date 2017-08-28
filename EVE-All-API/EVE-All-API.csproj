@@ -175,6 +175,7 @@
     <Compile Include="StaticData\DgmAttributeType.cs" />
     <Compile Include="StaticData\DgmTypeAttribute.cs" />
     <Compile Include="StaticData\IconID.cs" />
+    <Compile Include="StaticData\InvMetaType.cs" />
     <Compile Include="StaticData\SecondarySun.cs" />
     <Compile Include="Utils\ImageManager.cs" />
     <Compile Include="StaticData\EveUnit.cs" />

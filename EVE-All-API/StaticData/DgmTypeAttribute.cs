@@ -13,7 +13,7 @@ namespace EVE_All_API.StaticData
         {
             lock (dgmTypeAttributes)
             {
-                Loader.SaveDictList<DgmTypeAttribute>(dgmTypeAttributes, save, Save);
+                Loader.SaveDict<Dictionary<int, DgmTypeAttribute>>(dgmTypeAttributes, save, SaveDict);
             }
         }
 
@@ -21,9 +21,19 @@ namespace EVE_All_API.StaticData
         {
             lock (dgmTypeAttributes)
             {
-                dgmTypeAttributes = Loader.LoadDictList<DgmTypeAttribute>(load, Load);
+                dgmTypeAttributes = Loader.LoadDict< Dictionary<int, DgmTypeAttribute>>(load, LoadDict);
             }
             return true;
+        }
+
+        public static void SaveDict(Dictionary<int, DgmTypeAttribute> attrib, BinaryWriter save)
+        {
+            Loader.SaveDict<DgmTypeAttribute>(attrib, save, DgmTypeAttribute.Save);
+        }
+
+        public static Dictionary<int, DgmTypeAttribute> LoadDict(BinaryReader load)
+        {
+            return Loader.LoadDict<DgmTypeAttribute>(load, DgmTypeAttribute.Load);
         }
 
         public static void Save(DgmTypeAttribute attrib, BinaryWriter save)
@@ -54,14 +64,14 @@ namespace EVE_All_API.StaticData
             isInt = load.ReadBoolean();
             if (!dgmTypeAttributes.ContainsKey(typeID))
             {
-                dgmTypeAttributes[typeID] = new List<DgmTypeAttribute>();
+                dgmTypeAttributes[typeID] = new Dictionary<int, DgmTypeAttribute>();
             }
-            dgmTypeAttributes[typeID].Add(this);
+            dgmTypeAttributes[typeID][attributeID] = this;
         }
         #endregion caching
 
-        private static Dictionary<int, List<DgmTypeAttribute>> dgmTypeAttributes = new Dictionary<int, List<DgmTypeAttribute>>();
-        public static List<DgmTypeAttribute> GetDgmTypeAttribute(int _typeID)
+        private static Dictionary<int, Dictionary<int, DgmTypeAttribute>> dgmTypeAttributes = new Dictionary<int, Dictionary<int, DgmTypeAttribute>>();
+        public static Dictionary<int, DgmTypeAttribute> GetDgmTypeAttribute(int _typeID)
         {
             if (dgmTypeAttributes.ContainsKey(_typeID))
             {
@@ -105,10 +115,18 @@ namespace EVE_All_API.StaticData
             }
             if (!dgmTypeAttributes.ContainsKey(typeID))
             {
-                dgmTypeAttributes[typeID] = new List<DgmTypeAttribute>();
+                dgmTypeAttributes[typeID] = new Dictionary<int, DgmTypeAttribute>();
             }
-            dgmTypeAttributes[typeID].Add(this);
+            dgmTypeAttributes[typeID][attributeID] = this;
         }
 
+        public double GetValue()
+        {
+            if(isInt)
+            {
+                return valueInt;
+            }
+            return valueFloat;
+        }
     }
 }

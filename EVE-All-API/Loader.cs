@@ -157,6 +157,7 @@ namespace EVE_All_API
                 new LoadYamlItem( "/bsd/dgmTypeAttributes.yaml", DgmTypeAttribute.LoadYAML, DgmTypeAttribute.LoadAll, DgmTypeAttribute.SaveAll ),
                 new LoadYamlItem( "/bsd/invNames.yaml", InvNames.LoadYAML, InvNames.LoadAll, InvNames.SaveAll ),
                 new LoadYamlItem( "/bsd/invMarketGroups.yaml", InvMarketGroup.LoadYAML, InvMarketGroup.LoadAll, InvMarketGroup.SaveAll ),
+                new LoadYamlItem( "/bsd/invMetaTypes.yaml", InvMetaType.LoadYAML, InvMetaType.LoadAll, InvMetaType.SaveAll ),
                 new LoadYamlItem( "/bsd/invTypeMaterials.yaml", InvTypeMaterial.LoadYAML, InvTypeMaterial.LoadAll, InvTypeMaterial.SaveAll ),
                 new LoadYamlItem( "/fsd/categoryIDs.yaml", InvCategory.LoadYAML, InvCategory.LoadAll, InvCategory.SaveAll ),
                 new LoadYamlItem( "/fsd/groupIDs.yaml", InvGroup.LoadYAML, InvGroup.LoadAll, InvGroup.SaveAll ),
