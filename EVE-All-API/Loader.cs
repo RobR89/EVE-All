@@ -17,13 +17,20 @@ namespace EVE_All_API
         {
             public string fileName;
             public Func<YamlStream, bool> funct;
+            public Func<BinaryReader, bool> loadFunc;
+            public Action<BinaryWriter> saveFunc;
+            public string cacheFile = null;
             public string err = null;
             public bool complete = false;
 
-            public LoadYamlItem(string _file, Func<YamlStream, bool> _funct)
+            public LoadYamlItem(string _file, Func<YamlStream, bool> _funct, Func<BinaryReader, bool> _loadFunct = null, Action<BinaryWriter> _saveFunct = null)
             {
                 fileName = _file;
                 funct = _funct;
+                loadFunc = _loadFunct;
+                saveFunc = _saveFunct;
+                cacheFile = Path.GetFileName(fileName) + ".Cache";
+                cacheFile = UserData.cachePath + Path.GetFileName(UserData.sdeZip) + "." + cacheFile;
                 BackgroundWorker worker = new BackgroundWorker();
                 worker.DoWork += Worker_DoWork;
                 worker.RunWorkerAsync();
@@ -43,6 +50,24 @@ namespace EVE_All_API
                         zipFiles.Remove("sde" + fileName);
                     }
                 }
+                if(loadFunc != null && cacheFile != null)
+                {
+                    // Check for and load cache file.
+                    if (File.Exists(cacheFile))
+                    {
+                        using (FileStream file = new FileStream(cacheFile, FileMode.Open))
+                        {
+                            using (BinaryReader load = new BinaryReader(file))
+                            {
+                                if (loadFunc(load))
+                                {
+                                    complete = true;
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
                 if (reader != null)
                 {
                     // Load the zip extract.
@@ -59,6 +84,17 @@ namespace EVE_All_API
                     // Parse the file.
                     funct(yaml);
                     complete = true;
+                }
+                if (saveFunc != null && cacheFile != null)
+                {
+                    // Save to cache file.
+                    using (FileStream file = new FileStream(cacheFile, FileMode.Create))
+                    {
+                        using (BinaryWriter save = new BinaryWriter(file))
+                        {
+                            saveFunc(save);
+                        }
+                    }
                 }
             }
         }
@@ -110,23 +146,23 @@ namespace EVE_All_API
         private static List<LoadYamlItem> GetYamlFiles()
         {
             LoadYamlItem[] files = {
-                new LoadYamlItem( "/bsd/eveUnits.yaml", EveUnit.LoadYAML ),
-                new LoadYamlItem( "/bsd/chrRaces.yaml", ChrRace.LoadYAML ),
-                new LoadYamlItem( "/bsd/chrBloodlines.yaml", ChrBloodline.LoadYAML ),
-                new LoadYamlItem( "/bsd/chrAncestries.yaml", ChrAncestry.LoadYAML ),
-                new LoadYamlItem( "/bsd/chrFactions.yaml", ChrFaction.LoadYAML ),
-                new LoadYamlItem( "/bsd/crpNPCCorporations.yaml", CrpNPCCorporation.LoadYAML ),
-                new LoadYamlItem( "/bsd/dgmAttributeCategories.yaml", DgmAttributeCategory.LoadYAML ),
-                new LoadYamlItem( "/bsd/dgmAttributeTypes.yaml", DgmAttributeType.LoadYAML ),
-                new LoadYamlItem( "/bsd/dgmTypeAttributes.yaml", DgmTypeAttribute.LoadYAML ),
-                new LoadYamlItem( "/bsd/invNames.yaml", InvNames.LoadYAML ),
-                new LoadYamlItem( "/bsd/invMarketGroups.yaml", InvMarketGroup.LoadYAML ),
-                new LoadYamlItem( "/bsd/invTypeMaterials.yaml", InvTypeMaterial.LoadYAML ),
-                new LoadYamlItem( "/fsd/categoryIDs.yaml", InvCategory.LoadYAML ),
-                new LoadYamlItem( "/fsd/groupIDs.yaml", InvGroup.LoadYAML ),
-                new LoadYamlItem( "/fsd/typeIDs.yaml", InvType.LoadYAML ),
-                new LoadYamlItem( "/fsd/blueprints.yaml", Blueprint.LoadYAML ),
-                new LoadYamlItem( "/fsd/iconIDs.yaml", IconID.LoadYAML )
+                new LoadYamlItem( "/bsd/eveUnits.yaml", EveUnit.LoadYAML, EveUnit.LoadAll, EveUnit.SaveAll ),
+                new LoadYamlItem( "/bsd/chrRaces.yaml", ChrRace.LoadYAML, ChrRace.LoadAll, ChrRace.SaveAll ),
+                new LoadYamlItem( "/bsd/chrBloodlines.yaml", ChrBloodline.LoadYAML, ChrBloodline.LoadAll, ChrBloodline.SaveAll ),
+                new LoadYamlItem( "/bsd/chrAncestries.yaml", ChrAncestry.LoadYAML, ChrAncestry.LoadAll, ChrAncestry.SaveAll ),
+                new LoadYamlItem( "/bsd/chrFactions.yaml", ChrFaction.LoadYAML, ChrAncestry.LoadAll, ChrAncestry.SaveAll ),
+                new LoadYamlItem( "/bsd/crpNPCCorporations.yaml", CrpNPCCorporation.LoadYAML, CrpNPCCorporation.LoadAll, CrpNPCCorporation.SaveAll ),
+                new LoadYamlItem( "/bsd/dgmAttributeCategories.yaml", DgmAttributeCategory.LoadYAML, DgmAttributeCategory.LoadAll, DgmAttributeCategory.SaveAll ),
+                new LoadYamlItem( "/bsd/dgmAttributeTypes.yaml", DgmAttributeType.LoadYAML, DgmAttributeType.LoadAll, DgmAttributeType.SaveAll ),
+                new LoadYamlItem( "/bsd/dgmTypeAttributes.yaml", DgmTypeAttribute.LoadYAML, DgmTypeAttribute.LoadAll, DgmTypeAttribute.SaveAll ),
+                new LoadYamlItem( "/bsd/invNames.yaml", InvNames.LoadYAML, InvNames.LoadAll, InvNames.SaveAll ),
+                new LoadYamlItem( "/bsd/invMarketGroups.yaml", InvMarketGroup.LoadYAML, InvMarketGroup.LoadAll, InvMarketGroup.SaveAll ),
+                new LoadYamlItem( "/bsd/invTypeMaterials.yaml", InvTypeMaterial.LoadYAML, InvTypeMaterial.LoadAll, InvTypeMaterial.SaveAll ),
+                new LoadYamlItem( "/fsd/categoryIDs.yaml", InvCategory.LoadYAML, InvCategory.LoadAll, InvCategory.SaveAll ),
+                new LoadYamlItem( "/fsd/groupIDs.yaml", InvGroup.LoadYAML, InvGroup.LoadAll, InvGroup.SaveAll ),
+                new LoadYamlItem( "/fsd/typeIDs.yaml", InvType.LoadYAML, InvType.LoadAll, InvType.SaveAll ),
+                new LoadYamlItem( "/fsd/blueprints.yaml", Blueprint.LoadYAML, Blueprint.LoadAll, Blueprint.SaveAll ),
+                new LoadYamlItem( "/fsd/iconIDs.yaml", IconID.LoadYAML, IconID.LoadAll, IconID.SaveAll )
             };
             return new List<LoadYamlItem>(files);
         }
@@ -148,7 +184,7 @@ namespace EVE_All_API
                 if (worker != null && !worker.CancellationPending)
                 {
                     // Updatee the worker status.
-                    worker.ReportProgress(start, "Loading cached files...");
+                    worker.ReportProgress(start, "Loading cached system files...");
                 }
                 try
                 {
@@ -168,7 +204,7 @@ namespace EVE_All_API
                         }
                     }
                 }
-                catch(Exception)
+                catch(Exception e)
                 {
                     // An error occured, we should delete the file it appears corrupted.
                     File.Delete(solarSystemCacheFile);
@@ -353,6 +389,130 @@ namespace EVE_All_API
             }
             value = load.ReadString();
             return true;
+        }
+
+        public static void SaveInt(int value, BinaryWriter save)
+        {
+            save.Write(value);
+        }
+
+        public static int LoadInt(BinaryReader load)
+        {
+            return load.ReadInt32();
+        }
+
+        public static void SaveList<T>(List<T> list, BinaryWriter save, Action<T, BinaryWriter> saveFunc)
+        {
+            if (list == null)
+            {
+                save.Write((int)-1);
+                return;
+            }
+            save.Write(list.Count);
+            foreach (T i in list)
+            {
+                saveFunc(i, save);
+            }
+        }
+
+        public static List<T> LoadList<T>(BinaryReader load, Func<BinaryReader, T> loadFunc)
+        {
+            int cnt = load.ReadInt32();
+            if (cnt == -1)
+            {
+                return null;
+            }
+            List<T> values = new List<T>();
+            for (int i = 0; i < cnt; i++)
+            {
+                values.Add(loadFunc(load));
+            }
+            return values;
+        }
+
+        public static void SaveDict<T>(Dictionary<int, T> list, BinaryWriter save, Action<T, BinaryWriter> saveFunc)
+        {
+            if (list == null)
+            {
+                save.Write((int)-1);
+                return;
+            }
+            save.Write(list.Count);
+            foreach (var i in list)
+            {
+                save.Write(i.Key);
+                saveFunc(i.Value, save);
+            }
+        }
+
+        public static Dictionary<int, T> LoadDict<T>(BinaryReader load, Func<BinaryReader, T> loadFunc)
+        {
+            int cnt = load.ReadInt32();
+            if (cnt == -1)
+            {
+                return null;
+            }
+            Dictionary<int, T> values = new Dictionary<int, T>();
+            for (int i = 0; i < cnt; i++)
+            {
+                int key = load.ReadInt32();
+                values[key] = loadFunc(load);
+            }
+            return values;
+        }
+
+        public static void SaveDictList<T>(Dictionary<int, List<T>> list, BinaryWriter save, Action<T, BinaryWriter> saveFunc)
+        {
+            if (list == null)
+            {
+                save.Write((int)-1);
+                return;
+            }
+            save.Write(list.Count);
+            foreach (var i in list)
+            {
+                save.Write(i.Key);
+                SaveList<T>(i.Value, save, saveFunc);
+            }
+        }
+
+        public static Dictionary<int, List<T>> LoadDictList<T>(BinaryReader load, Func<BinaryReader, T> loadFunc)
+        {
+            int cnt = load.ReadInt32();
+            if (cnt == -1)
+            {
+                return null;
+            }
+            Dictionary<int, List<T>> values = new Dictionary<int, List<T>>();
+            for (int i = 0; i < cnt; i++)
+            {
+                int key = load.ReadInt32();
+                values[key] = LoadList<T>(load, loadFunc);
+            }
+            return values;
+        }
+
+
+        public static void SaveNullable<T>(T obj, BinaryWriter save, Action<T, BinaryWriter> saveFunc)
+        {
+            if(obj == null)
+            {
+                save.Write(false);
+            }
+            else
+            {
+                save.Write(true);
+                saveFunc(obj, save);
+            }
+        }
+
+        public static T LoadNullable<T>(BinaryReader load, Func<BinaryReader, T> loadFunc)
+        {
+            if(load.ReadBoolean() == true)
+            {
+                return loadFunc(load);
+            }
+            return default(T);
         }
 
     }

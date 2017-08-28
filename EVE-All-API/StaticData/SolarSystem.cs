@@ -13,11 +13,7 @@ namespace EVE_All_API.StaticData
         {
             lock (solarSystems)
             {
-                save.Write(solarSystems.Count);
-                foreach (SolarSystem system in solarSystems.Values)
-                {
-                    system.Save(save);
-                }
+                Loader.SaveDict(solarSystems, save, Save);
             }
         }
 
@@ -25,14 +21,19 @@ namespace EVE_All_API.StaticData
         {
             lock (solarSystems)
             {
-                int count = load.ReadInt32();
-                for (int i = 0; i < count; i++)
-                {
-                    SolarSystem system = new SolarSystem(load);
-                    solarSystems[system.solarSystemID] = system;
-                }
+                solarSystems = Loader.LoadDict<SolarSystem>(load, Load);
             }
             return true;
+        }
+
+        public static void Save(SolarSystem system, BinaryWriter save)
+        {
+            system.Save(save);
+        }
+
+        public static SolarSystem Load(BinaryReader load)
+        {
+            return new SolarSystem(load);
         }
 
         public void Save(BinaryWriter save)

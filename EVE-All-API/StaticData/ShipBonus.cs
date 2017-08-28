@@ -1,11 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 
 namespace EVE_All_API.StaticData
 {
     public class ShipBonus
     {
+        #region caching
+        public static void Save(ShipBonus bonus, BinaryWriter save)
+        {
+            bonus.Save(save);
+        }
+
+        public static ShipBonus Load(BinaryReader load)
+        {
+            return new ShipBonus(load);
+        }
+
+        public void Save(BinaryWriter save)
+        {
+            save.Write(nameID);
+            Loader.Save(bonusText, save);
+            save.Write(importance);
+            save.Write(bonus);
+            save.Write(unitID);
+        }
+
+        private ShipBonus(BinaryReader load)
+        {
+            nameID = load.ReadInt32();
+            Loader.Load(out bonusText, load);
+            importance = load.ReadInt32();
+            bonus = load.ReadDouble();
+            unitID = load.ReadInt32();
+        }
+        #endregion caching
+
         public readonly int nameID;
         public readonly string bonusText;
         public readonly int importance;

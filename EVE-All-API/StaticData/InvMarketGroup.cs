@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 using static EVE_All_API.YamlUtils;
 
@@ -7,6 +8,55 @@ namespace EVE_All_API.StaticData
 {
     public class InvMarketGroup : YamlSequencePage<InvMarketGroup>
     {
+        #region caching
+        public static void SaveAll(BinaryWriter save)
+        {
+            lock (marketGroups)
+            {
+                Loader.SaveDict<InvMarketGroup>(marketGroups, save, Save);
+            }
+        }
+
+        public static bool LoadAll(BinaryReader load)
+        {
+            lock (marketGroups)
+            {
+                marketGroups = Loader.LoadDict<InvMarketGroup>(load, Load);
+            }
+            return true;
+        }
+
+        public static void Save(InvMarketGroup attrib, BinaryWriter save)
+        {
+            attrib.Save(save);
+        }
+
+        public static InvMarketGroup Load(BinaryReader load)
+        {
+            return new InvMarketGroup(load);
+        }
+
+        public void Save(BinaryWriter save)
+        {
+            save.Write(marketGroupID);
+            Loader.Save(marketGroupName, save);
+            Loader.Save(description, save);
+            save.Write(hasTypes);
+            save.Write(iconID);
+            save.Write(parentGroupID);
+        }
+
+        private InvMarketGroup(BinaryReader load)
+        {
+            marketGroupID = load.ReadInt32();
+            Loader.Load(out marketGroupName, load);
+            Loader.Load(out description, load);
+            hasTypes = load.ReadBoolean();
+            iconID = load.ReadInt32();
+            parentGroupID = load.ReadInt32();
+        }
+        #endregion caching
+
         private static Dictionary<int, InvMarketGroup> marketGroups = new Dictionary<int, InvMarketGroup>();
         public static InvMarketGroup GetMarketGroup(int _marketGroupID)
         {

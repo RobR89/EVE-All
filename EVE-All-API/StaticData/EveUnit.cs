@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 using static EVE_All_API.YamlUtils;
 
@@ -7,6 +8,51 @@ namespace EVE_All_API.StaticData
 {
     public class EveUnit : YamlSequencePage<EveUnit>
     {
+        #region caching
+        public static void SaveAll(BinaryWriter save)
+        {
+            lock (units)
+            {
+                Loader.SaveDict<EveUnit>(units, save, Save);
+            }
+        }
+
+        public static bool LoadAll(BinaryReader load)
+        {
+            lock (units)
+            {
+                units = Loader.LoadDict<EveUnit>(load, Load);
+            }
+            return true;
+        }
+
+        public static void Save(EveUnit attrib, BinaryWriter save)
+        {
+            attrib.Save(save);
+        }
+
+        public static EveUnit Load(BinaryReader load)
+        {
+            return new EveUnit(load);
+        }
+
+        public void Save(BinaryWriter save)
+        {
+            save.Write(unitID);
+            Loader.Save(unitName, save);
+            Loader.Save(displayName, save);
+            Loader.Save(description, save);
+        }
+
+        private EveUnit(BinaryReader load)
+        {
+            unitID = load.ReadInt32();
+            Loader.Load(out unitName, load);
+            Loader.Load(out displayName, load);
+            Loader.Load(out description, load);
+        }
+        #endregion caching
+
         private static Dictionary<int, EveUnit> units = new Dictionary<int, EveUnit>();
         public static EveUnit GetUnit(int _unitID)
         {

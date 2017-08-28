@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 using static EVE_All_API.YamlUtils;
 
@@ -7,6 +8,65 @@ namespace EVE_All_API.StaticData
 {
     public class ChrAncestry : YamlSequencePage<ChrAncestry>
     {
+        #region caching
+        public static void SaveAll(BinaryWriter save)
+        {
+            lock (ancestries)
+            {
+                Loader.SaveDict<ChrAncestry>(ancestries, save, Save);
+            }
+        }
+
+        public static bool LoadAll(BinaryReader load)
+        {
+            lock (ancestries)
+            {
+                ancestries = Loader.LoadDict<ChrAncestry>(load, Load);
+            }
+            return true;
+        }
+
+        public static void Save(ChrAncestry attrib, BinaryWriter save)
+        {
+            attrib.Save(save);
+        }
+
+        public static ChrAncestry Load(BinaryReader load)
+        {
+            return new ChrAncestry(load);
+        }
+
+        public void Save(BinaryWriter save)
+        {
+            save.Write(ancestryID);
+            Loader.Save(ancestryName, save);
+            save.Write(bloodlineID);
+            Loader.Save(description, save);
+            Loader.Save(shortDescription, save);
+            save.Write(iconID);
+            save.Write(charisma);
+            save.Write(intelligence);
+            save.Write(memory);
+            save.Write(perception);
+            save.Write(willpower);
+        }
+
+        private ChrAncestry(BinaryReader load)
+        {
+            ancestryID = load.ReadInt32();
+            Loader.Load(out ancestryName, load);
+            bloodlineID = load.ReadInt32();
+            Loader.Load(out description, load);
+            Loader.Load(out shortDescription, load);
+            iconID = load.ReadInt32();
+            charisma = load.ReadInt32();
+            intelligence = load.ReadInt32();
+            memory = load.ReadInt32();
+            perception = load.ReadInt32();
+            willpower = load.ReadInt32();
+        }
+        #endregion caching
+
         private static Dictionary<int, ChrAncestry> ancestries = new Dictionary<int, ChrAncestry>();
         public static ChrAncestry GetAncestry(int _ancestryID)
         {

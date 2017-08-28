@@ -151,6 +151,12 @@ namespace EVE_All.Tabs
         private List<int> updatingRegions = new List<int>();
         private void ShowUpdatingRegions()
         {
+            if (InvokeRequired)
+            {
+                // Insure this is called in a GUI friendly thread.
+                Invoke((MethodInvoker)delegate { ShowUpdatingRegions(); });
+                return;
+            }
             if (updatingRegions.Count > 0)
             {
                 string regions = "";

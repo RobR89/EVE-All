@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 using static EVE_All_API.YamlUtils;
 
@@ -7,6 +8,35 @@ namespace EVE_All_API.StaticData
 {
     public class InvNames : YamlSequencePage<InvNames>
     {
+        #region caching
+        public static void SaveAll(BinaryWriter save)
+        {
+            lock (names)
+            {
+                save.Write(names.Count);
+                foreach (var name in names)
+                {
+                    save.Write(name.Key);
+                    save.Write(name.Value);
+                }
+            }
+        }
+
+        public static bool LoadAll(BinaryReader load)
+        {
+            lock (names)
+            {
+                int count = load.ReadInt32();
+                for (int i = 0; i < count; i++)
+                {
+                    long key = load.ReadInt64();
+                    names[key] = load.ReadString();
+                }
+            }
+            return true;
+        }
+        #endregion caching
+
         private static Dictionary<long, string> names = new Dictionary<long, string>();
         public static string GetName(int _nameID)
         {

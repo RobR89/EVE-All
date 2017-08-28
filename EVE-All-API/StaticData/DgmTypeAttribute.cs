@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 using static EVE_All_API.YamlUtils;
 
@@ -7,6 +8,58 @@ namespace EVE_All_API.StaticData
 {
     public class DgmTypeAttribute : YamlSequencePage<DgmTypeAttribute>
     {
+        #region caching
+        public static void SaveAll(BinaryWriter save)
+        {
+            lock (dgmTypeAttributes)
+            {
+                Loader.SaveDictList<DgmTypeAttribute>(dgmTypeAttributes, save, Save);
+            }
+        }
+
+        public static bool LoadAll(BinaryReader load)
+        {
+            lock (dgmTypeAttributes)
+            {
+                dgmTypeAttributes = Loader.LoadDictList<DgmTypeAttribute>(load, Load);
+            }
+            return true;
+        }
+
+        public static void Save(DgmTypeAttribute attrib, BinaryWriter save)
+        {
+            attrib.Save(save);
+        }
+
+        public static DgmTypeAttribute Load(BinaryReader load)
+        {
+            return new DgmTypeAttribute(load);
+        }
+
+        public void Save(BinaryWriter save)
+        {
+            save.Write(attributeID);
+            save.Write(typeID);
+            save.Write(valueInt);
+            save.Write(valueFloat);
+            save.Write(isInt);
+        }
+
+        private DgmTypeAttribute(BinaryReader load)
+        {
+            attributeID = load.ReadInt32();
+            typeID = load.ReadInt32();
+            valueInt = load.ReadInt64();
+            valueFloat = load.ReadDouble();
+            isInt = load.ReadBoolean();
+            if (!dgmTypeAttributes.ContainsKey(typeID))
+            {
+                dgmTypeAttributes[typeID] = new List<DgmTypeAttribute>();
+            }
+            dgmTypeAttributes[typeID].Add(this);
+        }
+        #endregion caching
+
         private static Dictionary<int, List<DgmTypeAttribute>> dgmTypeAttributes = new Dictionary<int, List<DgmTypeAttribute>>();
         public static List<DgmTypeAttribute> GetDgmTypeAttribute(int _typeID)
         {

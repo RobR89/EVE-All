@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using YamlDotNet.RepresentationModel;
 using static EVE_All_API.YamlUtils;
 
@@ -7,6 +8,58 @@ namespace EVE_All_API.StaticData
 {
     public class Blueprint : YamlMappingPage<Blueprint>
     {
+        #region caching
+        public static void SaveAll(BinaryWriter save)
+        {
+            lock (blueprints)
+            {
+                Loader.SaveDict<Blueprint>(blueprints, save, Save);
+            }
+        }
+
+        public static bool LoadAll(BinaryReader load)
+        {
+            lock (blueprints)
+            {
+                blueprints = Loader.LoadDict<Blueprint>(load, Load);
+            }
+            return true;
+        }
+
+        public static void Save(Blueprint attrib, BinaryWriter save)
+        {
+            attrib.Save(save);
+        }
+
+        public static Blueprint Load(BinaryReader load)
+        {
+            return new Blueprint(load);
+        }
+
+        public void Save(BinaryWriter save)
+        {
+            save.Write(blueprintTypeID);
+            save.Write(maxProductionLimit);
+            //TO-DO: handle null values!
+            Loader.SaveNullable<Activity>(copying, save, Activity.Save);
+            Loader.SaveNullable<Activity>(invention, save, Activity.Save);
+            Loader.SaveNullable<Activity>(manufacturing, save, Activity.Save);
+            Loader.SaveNullable<Activity>(research_material, save, Activity.Save);
+            Loader.SaveNullable<Activity>(research_time, save, Activity.Save);
+        }
+
+        private Blueprint(BinaryReader load)
+        {
+            blueprintTypeID = load.ReadInt32();
+            maxProductionLimit = load.ReadInt32();
+            copying = Loader.LoadNullable<Activity>(load, Activity.Load);
+            invention = Loader.LoadNullable<Activity>(load, Activity.Load);
+            manufacturing = Loader.LoadNullable<Activity>(load, Activity.Load);
+            research_material = Loader.LoadNullable<Activity>(load, Activity.Load);
+            research_time = Loader.LoadNullable<Activity>(load, Activity.Load);
+        }
+        #endregion caching
+
         private static Dictionary<int, Blueprint> blueprints = new Dictionary<int, Blueprint>();
         public static Blueprint GetType(int _typeID)
         {
@@ -78,6 +131,32 @@ namespace EVE_All_API.StaticData
 
         public class ActivityProduct
         {
+            #region caching
+            public static void Save(ActivityProduct activity, BinaryWriter save)
+            {
+                activity.Save(save);
+            }
+
+            public static ActivityProduct Load(BinaryReader load)
+            {
+                return new ActivityProduct(load);
+            }
+
+            public void Save(BinaryWriter save)
+            {
+                save.Write(probability);
+                save.Write(quantity);
+                save.Write(typeID);
+            }
+
+            private ActivityProduct(BinaryReader load)
+            {
+                probability = load.ReadDouble();
+                quantity = load.ReadInt32();
+                typeID = load.ReadInt32();
+            }
+            #endregion caching
+
             public readonly double probability;
             public readonly int quantity;
             public readonly int typeID;
@@ -110,6 +189,34 @@ namespace EVE_All_API.StaticData
 
         public class Activity
         {
+            #region caching
+            public static void Save(Activity activity, BinaryWriter save)
+            {
+                activity.Save(save);
+            }
+
+            public static Activity Load(BinaryReader load)
+            {
+                return new Activity(load);
+            }
+
+            public void Save(BinaryWriter save)
+            {
+                save.Write(time);
+                Loader.SaveList<ActivityProduct>(products, save, ActivityProduct.Save);
+                Loader.SaveDict<int>(skills, save, Loader.SaveInt);
+                Loader.SaveDict<int>(materials, save, Loader.SaveInt);
+            }
+
+            private Activity(BinaryReader load)
+            {
+                time = load.ReadInt64();
+                products = Loader.LoadList<ActivityProduct>(load, ActivityProduct.Load);
+                skills = Loader.LoadDict<int>(load, Loader.LoadInt);
+                materials = Loader.LoadDict<int>(load, Loader.LoadInt);
+            }
+            #endregion caching
+
             /// <summary>
             /// Time to complete activity in seconds with no skills.
             /// </summary>
